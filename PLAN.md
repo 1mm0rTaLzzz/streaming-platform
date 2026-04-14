@@ -203,15 +203,15 @@ docker compose up -d        # поднимает PG + Redis + backend + nginx
 - [x] DB migrations + seed 48 команд
 
 ### Phase 2 — Core (следующий)
-- [ ] Admin panel UI (Next.js) для управления матчами/потоками
-- [ ] Seed полного расписания (104 матча с датами/стадионами)
-- [ ] Страница `/admin/login` + JWT в localStorage
-- [ ] Live score push от admin → WebSocket → клиенты
+- [x] Admin panel UI (Next.js) для управления матчами/потоками
+- [x] Seed полного расписания (104 матча с датами/стадионами)
+- [x] Страница `/admin/login` + JWT в localStorage
+- [x] Live score push от admin → WebSocket → клиенты
 
 ### Phase 3 — Live Features
-- [ ] Admin: кнопки start/halftime/end match, обновление счёта
-- [ ] Frontend: live countdown до начала матча
-- [ ] Service Worker: offline schedule cache
+- [x] Admin: кнопки start/halftime/end match, обновление счёта
+- [x] Frontend: live countdown до начала матча
+- [x] Service Worker: offline schedule cache
 
 ### Phase 4 — Resilience
 - [ ] Cloudflare Workers script (edge proxy для m3u8 стримов)

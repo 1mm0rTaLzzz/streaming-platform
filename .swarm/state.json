@@ -1,0 +1,41 @@
+{
+  "swarmId": "swarm-mnw5lvvc",
+  "objective": "Build a GLOBAL FIFA World Cup 2026 streaming platform. Requirements: 1) Go+Gin backend with PostgreSQL+Redis - complete all files in backend/: main.go entry point, all handlers (match, stream, group, auth, mirror), JWT auth, WebSocket chat with Redis PubSub, mirror health checker service; 2) Streams schema supports 20+ languages (language_code field), regions (eu/us/asia/mena/global), commentary types; 3) API endpoint GET /api/matches/:id/streams accepts ?lang=ru&region=eu params; 4) Seed data: 48 World Cup teams, 12 groups, full schedule 104 matches; 5) Docker Compose with PostgreSQL, Redis, Nginx; 6) Database migrations; 7) Telegram bot stub for mirror distribution. Working directory: /Users/aleksandrterehin/Programming/DS_ML/stream_site/",
+  "strategy": "development",
+  "status": "initialized",
+  "agents": 8,
+  "agentPlan": [
+    {
+      "role": "Coordinator",
+      "type": "coordinator",
+      "count": 1,
+      "purpose": "Orchestrate workflow"
+    },
+    {
+      "role": "Architect",
+      "type": "architect",
+      "count": 1,
+      "purpose": "System design"
+    },
+    {
+      "role": "Coder",
+      "type": "coder",
+      "count": 3,
+      "purpose": "Implementation"
+    },
+    {
+      "role": "Tester",
+      "type": "tester",
+      "count": 2,
+      "purpose": "Quality assurance"
+    },
+    {
+      "role": "Reviewer",
+      "type": "reviewer",
+      "count": 1,
+      "purpose": "Code review"
+    }
+  ],
+  "startedAt": "2026-04-12T19:25:40.633Z",
+  "parallel": true
+}
