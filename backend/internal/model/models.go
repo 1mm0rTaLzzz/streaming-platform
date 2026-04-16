@@ -8,16 +8,18 @@ type Group struct {
 }
 
 type Team struct {
-	ID      int    `db:"id" json:"id"`
-	Code    string `db:"code" json:"code"`
-	NameEN  string `db:"name_en" json:"name_en"`
-	NameRU  string `db:"name_ru" json:"name_ru"`
-	FlagURL string `db:"flag_url" json:"flag_url"`
-	GroupID *int   `db:"group_id" json:"group_id,omitempty"`
+	ID         int    `db:"id" json:"id"`
+	ExternalID *int   `db:"external_id" json:"external_id,omitempty"`
+	Code       string `db:"code" json:"code"`
+	NameEN     string `db:"name_en" json:"name_en"`
+	NameRU     string `db:"name_ru" json:"name_ru"`
+	FlagURL    string `db:"flag_url" json:"flag_url"`
+	GroupID    *int   `db:"group_id" json:"group_id,omitempty"`
 }
 
 type Match struct {
 	ID          int       `db:"id" json:"id"`
+	ExternalID  *int      `db:"external_id" json:"external_id,omitempty"`
 	HomeTeamID  *int      `db:"home_team_id" json:"home_team_id,omitempty"`
 	AwayTeamID  *int      `db:"away_team_id" json:"away_team_id,omitempty"`
 	GroupID     *int      `db:"group_id" json:"group_id,omitempty"`

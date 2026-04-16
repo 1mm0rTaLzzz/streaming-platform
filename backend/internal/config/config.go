@@ -16,6 +16,7 @@ type Config struct {
 	Env              string
 	TelegramToken    string
 	TelegramChatID   string
+	FootballAPIKey   string
 }
 
 func Load() *Config {
@@ -31,6 +32,7 @@ func Load() *Config {
 		Env:            getEnv("ENV", "development"),
 		TelegramToken:  getEnv("TELEGRAM_BOT_TOKEN", ""),
 		TelegramChatID: getEnv("TELEGRAM_CHANNEL_ID", ""),
+		FootballAPIKey: getEnv("FOOTBALL_API_KEY", ""),
 	}
 }
 

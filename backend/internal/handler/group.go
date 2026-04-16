@@ -67,6 +67,26 @@ type TeamStanding struct {
 func (h *GroupHandler) getStandings(groupID int) []TeamStanding {
 	// Calculate standings from finished matches
 	query := `
+		WITH match_teams AS (
+			SELECT DISTINCT team_id
+			FROM (
+				SELECT m.home_team_id AS team_id
+				FROM matches m
+				WHERE m.group_id = $1 AND m.stage = 'group' AND m.home_team_id IS NOT NULL
+				UNION
+				SELECT m.away_team_id AS team_id
+				FROM matches m
+				WHERE m.group_id = $1 AND m.stage = 'group' AND m.away_team_id IS NOT NULL
+			) t
+		),
+		group_teams AS (
+			SELECT team_id FROM match_teams
+			UNION
+			SELECT t.id AS team_id
+			FROM teams t
+			WHERE t.group_id = $1
+			  AND NOT EXISTS (SELECT 1 FROM match_teams)
+		)
 		SELECT t.*,
 			COUNT(m.id) as played,
 			SUM(CASE
@@ -80,10 +100,10 @@ func (h *GroupHandler) getStandings(groupID int) []TeamStanding {
 				ELSE 0 END) as lost,
 			SUM(CASE WHEN m.home_team_id = t.id THEN m.home_score WHEN m.away_team_id = t.id THEN m.away_score ELSE 0 END) as gf,
 			SUM(CASE WHEN m.home_team_id = t.id THEN m.away_score WHEN m.away_team_id = t.id THEN m.home_score ELSE 0 END) as ga
-		FROM teams t
+		FROM group_teams gt
+		JOIN teams t ON t.id = gt.team_id
 		LEFT JOIN matches m ON (m.home_team_id = t.id OR m.away_team_id = t.id)
-			AND m.group_id = $1 AND m.status = 'finished'
-		WHERE t.group_id = $1
+			AND m.group_id = $1 AND m.stage = 'group' AND m.status = 'finished'
 		GROUP BY t.id
 		ORDER BY
 			(SUM(CASE WHEN m.home_team_id = t.id AND m.home_score > m.away_score THEN 3
@@ -91,7 +111,8 @@ func (h *GroupHandler) getStandings(groupID int) []TeamStanding {
 				WHEN m.home_score = m.away_score AND m.id IS NOT NULL THEN 1
 				ELSE 0 END)) DESC,
 			(SUM(CASE WHEN m.home_team_id = t.id THEN m.home_score WHEN m.away_team_id = t.id THEN m.away_score ELSE 0 END) -
-			 SUM(CASE WHEN m.home_team_id = t.id THEN m.away_score WHEN m.away_team_id = t.id THEN m.home_score ELSE 0 END)) DESC`
+			 SUM(CASE WHEN m.home_team_id = t.id THEN m.away_score WHEN m.away_team_id = t.id THEN m.home_score ELSE 0 END)) DESC,
+			t.name_en ASC`
 
 	rows, err := h.db.Queryx(query, groupID)
 	if err != nil {

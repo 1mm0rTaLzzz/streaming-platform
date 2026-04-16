@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WORLD CUP 2026 - Live Match</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;900&amp;family=Manrope:wght@400;600;800&amp;family=Space+Grotesk:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "primary-dim": "#3766ff",
+                "error-container": "#a70138",
+                "on-secondary": "#490007",
+                "tertiary": "#dbffe9",
+                "on-secondary-fixed-variant": "#a5001e",
+                "surface-container-high": "#20201f",
+                "primary-container": "#829bff",
+                "outline-variant": "#484847",
+                "surface-bright": "#2c2c2c",
+                "inverse-primary": "#004cef",
+                "inverse-on-surface": "#565555",
+                "tertiary-fixed-dim": "#97ebc1",
+                "on-primary-container": "#001a63",
+                "on-surface-variant": "#adaaaa",
+                "tertiary-dim": "#97ebc1",
+                "secondary-dim": "#ff706f",
+                "on-error-container": "#ffb2b9",
+                "tertiary-container": "#a5facf",
+                "secondary-fixed": "#ffc3c0",
+                "primary-fixed": "#829bff",
+                "on-tertiary": "#076b4a",
+                "surface-container-low": "#131313",
+                "secondary-container": "#bf0124",
+                "on-primary": "#00247e",
+                "background": "#0e0e0e",
+                "inverse-surface": "#fcf9f8",
+                "surface-container": "#1a1a1a",
+                "surface-container-lowest": "#000000",
+                "on-surface": "#ffffff",
+                "on-background": "#ffffff",
+                "outline": "#767575",
+                "tertiary-fixed": "#a5facf",
+                "error": "#ff6e84",
+                "on-primary-fixed": "#000000",
+                "on-secondary-fixed": "#6f0010",
+                "surface-dim": "#0e0e0e",
+                "surface-tint": "#95aaff",
+                "surface-variant": "#262626",
+                "primary-fixed-dim": "#6e8cff",
+                "on-tertiary-fixed-variant": "#0b6d4b",
+                "on-error": "#490013",
+                "secondary": "#ff706f",
+                "surface-container-highest": "#262626",
+                "on-secondary-container": "#fff6f5",
+                "primary": "#95aaff",
+                "on-tertiary-fixed": "#004d34",
+                "on-tertiary-container": "#006242",
+                "secondary-fixed-dim": "#ffafab",
+                "on-primary-fixed-variant": "#002278",
+                "error-dim": "#d73357",
+                "surface": "#0e0e0e"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "fontFamily": {
+                "headline": ["Lexend"],
+                "body": ["Manrope"],
+                "label": ["Space Grotesk"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#0e0e0e]/80 backdrop-blur-xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+<div class="flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-white hover:text-[#ff706f] transition-colors cursor-pointer active:scale-95 duration-200">menu</span>
+<h1 class="font-headline font-black tracking-tighter uppercase text-[#95aaff] italic text-2xl tracking-widest">WORLD CUP 2026</h1>
+</div>
+<div class="h-10 w-10 rounded-full overflow-hidden border-2 border-[#95aaff]/20 active:scale-95 duration-200 cursor-pointer">
+<img alt="User Profile" data-alt="close-up portrait of a passionate football fan with subtle face paint in national colors, modern studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSkhXxbdm_FIooEi2dBELGrhg74hqMggeHMfB6y1KYltaUWpgCeT17kDe0NmzurfIc6v57qIc-sCkmZvZbvKCenyzaiB1zhwX_Fpgq21MEcRd0JcNpssChRG0TxQ4Q-O_vxcDILFMF09R_Y6DWq5rpbHTOPZHYo6pNGBj6MDKyz1t2QxZ6amIYMP_mwtmmob0owk0fkpmjUz6_4tI0euWGXMd-_ozMxpoHzhPIKs9p1pSXtqOve9JZWy4M32z67Zk7aCtEKCUgb9Q"/>
+</div>
+</div>
+</header>
+<main class="pt-16 max-w-7xl mx-auto px-0 md:px-6">
+<!-- Video Player Section -->
+<section class="relative aspect-video w-full bg-black overflow-hidden md:rounded-xl shadow-2xl group">
+<img class="w-full h-full object-cover opacity-60" data-alt="dynamic wide angle shot of a massive football stadium filled with fans under bright floodlights during a night match" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSXEf52bf0b0UT5SM3K5_vqUdEcHvCn7cbmlbs-MNTr-uSX9YODhm8Am-V1U8XY1mq1ogD0Lp6CmyPgF6oXcLAOJ4f1jgcAT12KnplnasZ16wdSh9iAZ-jh44SpET2R9P7qRfbFIuPElIrXvqjCgfHg0V_t8rXiB_0dPqeBaBAgJLZAOArzGxNJPhJtNfZRroOv0g6qC67X8kiqs145_F32BFQ2OKewWUHeWPm1riRjSk-QsMiIhkmJSJEmipKySDOOwKkLy-gx7c"/>
+<div class="absolute inset-0 flex flex-col justify-between p-4 md:p-8">
+<div class="flex justify-between items-start">
+<div class="flex gap-2">
+<span class="bg-secondary text-on-secondary px-3 py-1 rounded-full font-label font-bold text-xs tracking-wider flex items-center gap-2 animate-pulse">
+<span class="w-2 h-2 bg-on-secondary rounded-full"></span>
+                            LIVE
+                        </span>
+<span class="bg-black/40 backdrop-blur-md text-white px-3 py-1 rounded-full font-label text-xs tracking-widest">4K BROADCAST</span>
+</div>
+<button class="w-10 h-10 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-primary-dim transition-colors">
+<span class="material-symbols-outlined">fullscreen</span>
+</button>
+</div>
+<div class="flex items-center justify-center gap-4 group-hover:scale-110 transition-transform duration-500">
+<button class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-2xl">
+<span class="material-symbols-outlined !text-4xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<div class="flex justify-between items-end">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-white">volume_up</span>
+<div class="w-32 h-1 bg-white/20 rounded-full overflow-hidden">
+<div class="w-2/3 h-full bg-primary"></div>
+</div>
+</div>
+<div class="text-white font-label text-sm tracking-widest bg-black/40 px-3 py-1 rounded-lg">2,482,091 WATCHING</div>
+</div>
+</div>
+</section>
+<!-- Score & Status Dashboard -->
+<section class="mt-4 md:mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 px-4 md:px-0">
+<div class="md:col-span-2 bg-surface-container-low p-6 rounded-xl flex flex-col gap-8 relative overflow-hidden">
+<!-- Background Accent -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32"></div>
+<div class="flex items-center justify-between relative z-10">
+<!-- Home Team -->
+<div class="flex flex-col items-center gap-3 w-1/3">
+<div class="w-20 h-20 bg-surface-container rounded-lg flex items-center justify-center p-2 shadow-inner border border-white/5">
+<img class="w-full h-auto" data-alt="Stylized national flag of USA with high contrast and premium texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeLnmKn2VeiJnw8F61FNIyJ4LARFfwYptPp-8_V-sXhU2yxxMAZ7EHoITPerhEOFFIIBisISk9xFc6C7xMM8UjpCkuV1_1vowTPx_eOgzBH3AEemRvdnQQ8BXoPjZG7thsHgwPrZNno8moa-wX8Aq88KclsTvs3GVZNVzDDLI3Wpwxum9_2X66ZAcvbxCiQUq88oVBqd4U9ABTQV4ktssWE3PGuhhbvOCQ5fJBsqIg3R3kJK1tzX-CHiQ4Zx1ad-c2ZIsAP9B8nyU"/>
+</div>
+<h2 class="font-headline font-black text-xl tracking-tighter text-center uppercase">USA</h2>
+<span class="font-label text-xs text-on-surface-variant uppercase tracking-widest">HOST NATION</span>
+</div>
+<!-- Score Center -->
+<div class="flex flex-col items-center gap-2">
+<div class="flex items-center gap-4">
+<span class="font-headline font-black text-6xl text-primary md:text-7xl">2</span>
+<span class="font-headline font-black text-4xl text-outline-variant">:</span>
+<span class="font-headline font-black text-6xl text-white md:text-7xl">1</span>
+</div>
+<div class="bg-surface-container-highest px-4 py-1.5 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-sm animate-pulse" style="font-variation-settings: 'FILL' 1;">timer</span>
+<span class="font-label font-bold text-sm tracking-widest text-on-surface italic">74'</span>
+</div>
+</div>
+<!-- Away Team -->
+<div class="flex flex-col items-center gap-3 w-1/3">
+<div class="w-20 h-20 bg-surface-container rounded-lg flex items-center justify-center p-2 shadow-inner border border-white/5">
+<img class="w-full h-auto" data-alt="Stylized national flag of Mexico with high contrast and premium texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiK-C2aEKZgL8lmTQGQFAzOWzKqdwJ_0_Gz04K1bAcLQDxObOJu_bdJjktmZUYLEKts1spKuFOHbnK6_e6IzCuLTpFFnXTDpm3U6-YSwsYuE3rj9hSFSNLJnn1sWJGFEGAfMXQ1NZRmxjGTgUHhKuOUhVBaXCpbOHuktW3IzCpdll_iDKuIKtjBpLey-oVZj5niWbwl-W2oQZ2vM6rgo9XVkaiH51hu-JMXYMS5T9kffNGB2JtN4ROmCB-UCX6gt03wFMHCl7T-Xc"/>
+</div>
+<h2 class="font-headline font-black text-xl tracking-tighter text-center uppercase">MEXICO</h2>
+<span class="font-label text-xs text-on-surface-variant uppercase tracking-widest">CONCACAF</span>
+</div>
+</div>
+<!-- Goals Timeline -->
+<div class="grid grid-cols-2 gap-8 border-t border-white/5 pt-6">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2 text-sm">
+<span class="material-symbols-outlined text-[16px] text-tertiary">sports_soccer</span>
+<span class="font-body font-semibold">Pulisic 14'</span>
+</div>
+<div class="flex items-center gap-2 text-sm">
+<span class="material-symbols-outlined text-[16px] text-tertiary">sports_soccer</span>
+<span class="font-body font-semibold">Balogun 41'</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 items-end">
+<div class="flex items-center gap-2 text-sm">
+<span class="font-body font-semibold">Jiménez 58'</span>
+<span class="material-symbols-outlined text-[16px] text-tertiary">sports_soccer</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Momentum Tracker (Asymmetric Content) -->
+<div class="bg-surface-container p-6 rounded-xl flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-label text-xs font-bold tracking-widest text-on-surface-variant uppercase">Attack Momentum</h3>
+<span class="material-symbols-outlined text-primary text-sm">trending_up</span>
+</div>
+<div class="flex items-end gap-1.5 h-32 w-full">
+<div class="bg-primary/20 w-full h-[40%] rounded-t-sm"></div>
+<div class="bg-primary/40 w-full h-[60%] rounded-t-sm"></div>
+<div class="bg-primary/30 w-full h-[30%] rounded-t-sm"></div>
+<div class="bg-primary/60 w-full h-[80%] rounded-t-sm"></div>
+<div class="bg-primary w-full h-[100%] rounded-t-sm shadow-[0_0_15px_rgba(149,170,255,0.3)]"></div>
+<div class="bg-secondary/40 w-full h-[50%] rounded-t-sm"></div>
+<div class="bg-secondary/20 w-full h-[30%] rounded-t-sm"></div>
+<div class="bg-secondary/10 w-full h-[10%] rounded-t-sm"></div>
+</div>
+</div>
+<div class="pt-4 flex justify-between border-t border-white/5 mt-4">
+<div class="text-xs font-label uppercase tracking-tighter text-on-surface-variant">USA High Press</div>
+<div class="text-xs font-label uppercase tracking-tighter text-secondary">Mexico Counters</div>
+</div>
+</div>
+</section>
+<!-- Dynamic Content Tabs -->
+<section class="mt-8 px-4 md:px-0">
+<!-- Tab Headers -->
+<div class="flex gap-1 p-1 bg-surface-container-low rounded-xl mb-6">
+<button class="flex-1 py-3 px-4 rounded-lg bg-surface-container-highest text-primary font-label font-bold text-xs uppercase tracking-widest transition-all">Stats</button>
+<button class="flex-1 py-3 px-4 rounded-lg hover:bg-white/5 text-on-surface-variant font-label font-bold text-xs uppercase tracking-widest transition-all">Lineups</button>
+<button class="flex-1 py-3 px-4 rounded-lg hover:bg-white/5 text-on-surface-variant font-label font-bold text-xs uppercase tracking-widest transition-all">Commentary</button>
+</div>
+<!-- Bento Grid Stats Section -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+<!-- Stat Card -->
+<div class="bg-surface-container p-5 rounded-xl border-l-4 border-primary">
+<div class="font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Possession</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline font-black text-2xl">54%</span>
+<span class="text-[10px] text-on-surface-variant font-label">/ 46%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-lowest mt-4 rounded-full overflow-hidden flex">
+<div class="h-full bg-primary" style="width: 54%"></div>
+</div>
+</div>
+<div class="bg-surface-container p-5 rounded-xl">
+<div class="font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Expected Goals (xG)</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline font-black text-2xl">2.14</span>
+<span class="text-[10px] text-on-surface-variant font-label">/ 0.88</span>
+</div>
+</div>
+<div class="bg-surface-container p-5 rounded-xl">
+<div class="font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Total Shots</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline font-black text-2xl">14</span>
+<span class="text-[10px] text-on-surface-variant font-label">/ 6</span>
+</div>
+</div>
+<div class="bg-surface-container p-5 rounded-xl border-l-4 border-secondary">
+<div class="font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Yellow Cards</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline font-black text-2xl text-secondary">1</span>
+<span class="text-[10px] text-on-surface-variant font-label">/ 3</span>
+</div>
+</div>
+</div>
+<!-- Detailed Stats Breakdown -->
+<div class="bg-surface-container-low rounded-2xl overflow-hidden mb-12">
+<div class="p-6 border-b border-white/5">
+<h3 class="font-headline font-black text-xl tracking-tighter uppercase italic">Match Metrics</h3>
+</div>
+<div class="p-6 space-y-6">
+<!-- Metric Row -->
+<div class="space-y-2">
+<div class="flex justify-between font-label text-[11px] uppercase tracking-widest">
+<span>USA</span>
+<span class="text-on-surface-variant">Shots on Target</span>
+<span>MEXICO</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-headline font-bold text-lg w-8">8</span>
+<div class="flex-1 flex gap-1 h-2">
+<div class="flex-1 bg-surface-container-highest rounded-full overflow-hidden flex justify-end">
+<div class="bg-primary w-[80%] h-full"></div>
+</div>
+<div class="flex-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-white/20 w-[30%] h-full"></div>
+</div>
+</div>
+<span class="font-headline font-bold text-lg w-8 text-right">3</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label text-[11px] uppercase tracking-widest">
+<span>USA</span>
+<span class="text-on-surface-variant">Pass Accuracy</span>
+<span>MEXICO</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-headline font-bold text-lg w-8">89%</span>
+<div class="flex-1 flex gap-1 h-2">
+<div class="flex-1 bg-surface-container-highest rounded-full overflow-hidden flex justify-end">
+<div class="bg-primary w-[89%] h-full"></div>
+</div>
+<div class="flex-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-white/20 w-[82%] h-full"></div>
+</div>
+</div>
+<span class="font-headline font-bold text-lg w-8 text-right">82%</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label text-[11px] uppercase tracking-widest">
+<span>USA</span>
+<span class="text-on-surface-variant">Corners</span>
+<span>MEXICO</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-headline font-bold text-lg w-8">5</span>
+<div class="flex-1 flex gap-1 h-2">
+<div class="flex-1 bg-surface-container-highest rounded-full overflow-hidden flex justify-end">
+<div class="bg-primary w-[100%] h-full"></div>
+</div>
+<div class="flex-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-white/20 w-[40%] h-full"></div>
+</div>
+</div>
+<span class="font-headline font-bold text-lg w-8 text-right">2</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full h-20 bg-[#131313]/90 backdrop-blur-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] flex justify-around items-center px-4 pb-safe z-50 rounded-t-xl border-t border-white/5">
+<a class="flex flex-col items-center justify-center text-[#95aaff] bg-[#95aaff]/10 rounded-xl px-4 py-1.5 active:translate-y-0.5 transition-transform" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-headline text-[10px] font-bold uppercase tracking-widest mt-1">Matches</span>
+</a>
+<a class="flex flex-col items-center justify-center text-white/50 hover:text-white transition-all active:translate-y-0.5" href="#">
+<span class="material-symbols-outlined">live_tv</span>
+<span class="font-headline text-[10px] font-bold uppercase tracking-widest mt-1">Live</span>
+</a>
+<a class="flex flex-col items-center justify-center text-white/50 hover:text-white transition-all active:translate-y-0.5" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-headline text-[10px] font-bold uppercase tracking-widest mt-1">Teams</span>
+</a>
+<a class="flex flex-col items-center justify-center text-white/50 hover:text-white transition-all active:translate-y-0.5" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-headline text-[10px] font-bold uppercase tracking-widest mt-1">Stats</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,54 @@
+# Environment
+.env
+.env.*
+!.env.example
+docker/.env
+
+# Claude / AI tooling
+.claude/
+.claude-flow/
+.swarm/
+.mcp.json
+graphify-out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Go
+backend/vendor/
+*.exe
+*.out
+*.test
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+dist/
+*.egg-info/
+
+# Build artifacts
+build/
+dist/
+.next/
+out/
+
+# Logs
+*.log
+logs/
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
