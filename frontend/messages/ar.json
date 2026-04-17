@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "title": "WC26 · بث مباشر لكأس العالم 2026",
+    "description": "شاهد جميع مباريات كأس العالم 2026 مباشرة. بث مجاني بأكثر من 20 لغة."
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "schedule": "الجدول",
+    "groups": "المجموعات",
+    "search": "بحث"
+  },
+  "home": {
+    "heroSubtitle": "الولايات المتحدة · كندا · المكسيك — شاهد كل المباريات مباشرة بأكثر من 20 لغة",
+    "liveNow": "مباشر الآن",
+    "todayMatches": "مباريات اليوم",
+    "upcomingMatches": "القادمة",
+    "noLive": "لا توجد مباريات مباشرة الآن",
+    "groups": "المجموعات",
+    "inProgress": "{count} مباراة جارية",
+    "noMatchesToday": "لا توجد مباريات اليوم",
+    "viewFullSchedule": "عرض الجدول الكامل"
+  },
+  "schedule": {
+    "title": "الجدول الكامل",
+    "comingSoon": "الجدول سيتوفر قريباً"
+  },
+  "match": {
+    "live": "مباشر",
+    "finished": "انتهت",
+    "fullTime": "نهاية المباراة",
+    "halfTime": "استراحة",
+    "scheduled": "قريباً",
+    "kickoff": "بداية المباراة",
+    "venue": "الملعب",
+    "watchNow": "شاهد الآن",
+    "streams": "البث",
+    "selectStream": "اختر البث",
+    "language": "اللغة",
+    "quality": "الجودة",
+    "noStreams": "لا توجد بثوث متاحة حالياً",
+    "tbd": "لاحقاً",
+    "versus": "ضد",
+    "startingNow": "تبدأ الآن",
+    "notFound": "المباراة غير موجودة أو غير متاحة."
+  },
+  "player": {
+    "noStreams": "لا يوجد بث متاح",
+    "language": "اللغة",
+    "source": "المصدر",
+    "quality": "الجودة",
+    "auto": "تلقائي"
+  },
+  "chat": {
+    "title": "دردشة مباشرة",
+    "placeholder": "اكتب رسالة...",
+    "send": "إرسال",
+    "joinAs": "أدخل اسمك للدردشة...",
+    "join": "دخول",
+    "anonymous": "مجهول",
+    "connecting": "جارٍ الاتصال...",
+    "connected": "متصل",
+    "disconnected": "غير متصل",
+    "reconnecting": "إعادة الاتصال..."
+  },
+  "groups": {
+    "title": "ترتيب المجموعات",
+    "group": "المجموعة",
+    "team": "الفريق",
+    "played": "ل",
+    "won": "ف",
+    "drawn": "ت",
+    "lost": "خ",
+    "gf": "له",
+    "ga": "عليه",
+    "gd": "ف.أ",
+    "points": "نقاط",
+    "qualified": "متأهل",
+    "notAvailable": "المجموعات غير متاحة بعد",
+    "teamsTbd": "الفرق ستُحدد لاحقاً"
+  },
+  "mirrors": {
+    "unavailable": "قد يكون هذا المرآة غير متاح.",
+    "switchTo": "التبديل إلى:"
+  },
+  "footer": {
+    "mirrors": "مواقع بديلة",
+    "telegram": "قناة تيليجرام",
+    "disclaimer": "WC26 · مجمّع بث · جميع الحقوق محفوظة لأصحابها"
+  },
+  "languages": {
+    "en": "English",
+    "ru": "Русский",
+    "es": "Español",
+    "pt": "Português",
+    "ar": "العربية",
+    "fr": "Français",
+    "de": "Deutsch",
+    "zh": "中文",
+    "ja": "日本語",
+    "ko": "한국어"
+  }
+}

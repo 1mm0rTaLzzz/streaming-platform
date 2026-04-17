@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "title": "WC26 · Diffusions en direct de la Coupe du Monde 2026",
+    "description": "Regardez tous les matchs de la Coupe du Monde 2026 en direct. Streams gratuits en plus de 20 langues."
+  },
+  "nav": {
+    "home": "Accueil",
+    "schedule": "Calendrier",
+    "groups": "Groupes",
+    "search": "Recherche"
+  },
+  "home": {
+    "heroSubtitle": "États-Unis · Canada · Mexique — regardez tous les matchs en direct en plus de 20 langues",
+    "liveNow": "En Direct",
+    "todayMatches": "Matchs du Jour",
+    "upcomingMatches": "À venir",
+    "noLive": "Aucun match en direct pour le moment",
+    "groups": "Groupes",
+    "inProgress": "{count, plural, one {# match en cours} other {# matchs en cours}}",
+    "noMatchesToday": "Aucun match aujourd'hui",
+    "viewFullSchedule": "Voir le calendrier complet"
+  },
+  "schedule": {
+    "title": "Calendrier Complet",
+    "comingSoon": "Le calendrier arrive bientôt"
+  },
+  "match": {
+    "live": "DIRECT",
+    "finished": "FIN",
+    "fullTime": "Fin du match",
+    "halfTime": "MT",
+    "scheduled": "À venir",
+    "kickoff": "Coup d'envoi",
+    "venue": "Stade",
+    "watchNow": "Regarder",
+    "streams": "Flux",
+    "selectStream": "Choisir un flux",
+    "language": "Langue",
+    "quality": "Qualité",
+    "noStreams": "Aucun flux disponible pour le moment",
+    "tbd": "À définir",
+    "versus": "vs",
+    "startingNow": "Commence maintenant",
+    "notFound": "Match introuvable ou indisponible."
+  },
+  "player": {
+    "noStreams": "Aucun flux disponible",
+    "language": "Langue",
+    "source": "Source",
+    "quality": "Qualité",
+    "auto": "Auto"
+  },
+  "chat": {
+    "title": "Chat en Direct",
+    "placeholder": "Écrivez un message...",
+    "send": "Envoyer",
+    "joinAs": "Entrez votre nom pour discuter...",
+    "join": "Rejoindre",
+    "anonymous": "Anonyme",
+    "connecting": "Connexion...",
+    "connected": "Connecté",
+    "disconnected": "Déconnecté",
+    "reconnecting": "Reconnexion..."
+  },
+  "groups": {
+    "title": "Classement des Groupes",
+    "group": "Groupe",
+    "team": "Équipe",
+    "played": "J",
+    "won": "G",
+    "drawn": "N",
+    "lost": "P",
+    "gf": "BP",
+    "ga": "BC",
+    "gd": "Diff",
+    "points": "Pts",
+    "qualified": "Qualifié",
+    "notAvailable": "Les groupes ne sont pas encore disponibles",
+    "teamsTbd": "Équipes à confirmer"
+  },
+  "mirrors": {
+    "unavailable": "Ce miroir peut être indisponible.",
+    "switchTo": "Basculer vers :"
+  },
+  "footer": {
+    "mirrors": "Sites miroir",
+    "telegram": "Canal Telegram",
+    "disclaimer": "WC26 · Agrégateur de flux · Tous les droits appartiennent à leurs propriétaires respectifs"
+  },
+  "languages": {
+    "en": "English",
+    "ru": "Русский",
+    "es": "Español",
+    "pt": "Português",
+    "ar": "العربية",
+    "fr": "Français",
+    "de": "Deutsch",
+    "zh": "中文",
+    "ja": "日本語",
+    "ko": "한국어"
+  }
+}

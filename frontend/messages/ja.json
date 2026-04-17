@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "title": "WC26 · FIFAワールドカップ2026 ライブ配信",
+    "description": "FIFAワールドカップ2026の全試合をライブで視聴。20以上の言語で無料配信。"
+  },
+  "nav": {
+    "home": "ホーム",
+    "schedule": "日程",
+    "groups": "グループ",
+    "search": "検索"
+  },
+  "home": {
+    "heroSubtitle": "アメリカ · カナダ · メキシコ — 20以上の言語で全試合をライブ視聴",
+    "liveNow": "ライブ中",
+    "todayMatches": "本日の試合",
+    "upcomingMatches": "今後の試合",
+    "noLive": "現在ライブ中の試合はありません",
+    "groups": "グループ",
+    "inProgress": "進行中: {count} 試合",
+    "noMatchesToday": "本日の試合はありません",
+    "viewFullSchedule": "全日程を見る"
+  },
+  "schedule": {
+    "title": "全日程",
+    "comingSoon": "日程はまもなく公開されます"
+  },
+  "match": {
+    "live": "LIVE",
+    "finished": "終了",
+    "fullTime": "試合終了",
+    "halfTime": "HT",
+    "scheduled": "予定",
+    "kickoff": "キックオフ",
+    "venue": "会場",
+    "watchNow": "今すぐ視聴",
+    "streams": "配信",
+    "selectStream": "配信を選択",
+    "language": "言語",
+    "quality": "画質",
+    "noStreams": "現在利用可能な配信がありません",
+    "tbd": "未定",
+    "versus": "vs",
+    "startingNow": "まもなく開始",
+    "notFound": "試合が見つからないか、利用できません。"
+  },
+  "player": {
+    "noStreams": "利用可能な配信がありません",
+    "language": "言語",
+    "source": "ソース",
+    "quality": "画質",
+    "auto": "自動"
+  },
+  "chat": {
+    "title": "ライブチャット",
+    "placeholder": "メッセージを入力...",
+    "send": "送信",
+    "joinAs": "チャット名を入力してください...",
+    "join": "参加",
+    "anonymous": "匿名",
+    "connecting": "接続中...",
+    "connected": "接続済み",
+    "disconnected": "切断",
+    "reconnecting": "再接続中..."
+  },
+  "groups": {
+    "title": "グループ順位",
+    "group": "グループ",
+    "team": "チーム",
+    "played": "試",
+    "won": "勝",
+    "drawn": "分",
+    "lost": "敗",
+    "gf": "得",
+    "ga": "失",
+    "gd": "差",
+    "points": "点",
+    "qualified": "突破",
+    "notAvailable": "グループ情報はまだありません",
+    "teamsTbd": "チーム未定"
+  },
+  "mirrors": {
+    "unavailable": "このミラーは利用できない可能性があります。",
+    "switchTo": "切り替え:"
+  },
+  "footer": {
+    "mirrors": "ミラーサイト",
+    "telegram": "Telegramチャンネル",
+    "disclaimer": "WC26 · 配信アグリゲーター · すべての権利は各権利者に帰属します"
+  },
+  "languages": {
+    "en": "English",
+    "ru": "Русский",
+    "es": "Español",
+    "pt": "Português",
+    "ar": "العربية",
+    "fr": "Français",
+    "de": "Deutsch",
+    "zh": "中文",
+    "ja": "日本語",
+    "ko": "한국어"
+  }
+}

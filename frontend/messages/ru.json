@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "title": "WC26 · Прямые трансляции ЧМ-2026",
+    "description": "Смотрите все матчи ЧМ-2026 в прямом эфире. Бесплатные потоки на 20+ языках."
+  },
+  "nav": {
+    "home": "Главная",
+    "schedule": "Расписание",
+    "groups": "Группы",
+    "search": "Поиск"
+  },
+  "home": {
+    "heroSubtitle": "США · Канада · Мексика — смотрите все матчи в прямом эфире на 20+ языках",
+    "liveNow": "Прямо сейчас",
+    "todayMatches": "Матчи сегодня",
+    "upcomingMatches": "Скоро",
+    "noLive": "Сейчас нет прямых трансляций",
+    "groups": "Группы",
+    "inProgress": "В эфире: {count}",
+    "noMatchesToday": "Сегодня матчей нет",
+    "viewFullSchedule": "Смотреть полное расписание"
+  },
+  "schedule": {
+    "title": "Полное расписание",
+    "comingSoon": "Расписание скоро появится"
+  },
+  "match": {
+    "live": "LIVE",
+    "finished": "З",
+    "fullTime": "Матч окончен",
+    "halfTime": "ПТ",
+    "scheduled": "Скоро",
+    "kickoff": "Начало",
+    "venue": "Стадион",
+    "watchNow": "Смотреть",
+    "streams": "Трансляции",
+    "selectStream": "Выбрать поток",
+    "language": "Язык",
+    "quality": "Качество",
+    "noStreams": "Трансляции пока недоступны",
+    "tbd": "TBD",
+    "versus": "vs",
+    "startingNow": "Начинается",
+    "notFound": "Матч не найден или недоступен."
+  },
+  "player": {
+    "noStreams": "Нет доступных потоков",
+    "language": "Язык",
+    "source": "Источник",
+    "quality": "Качество",
+    "auto": "Авто"
+  },
+  "chat": {
+    "title": "Чат",
+    "placeholder": "Написать сообщение...",
+    "send": "Отправить",
+    "joinAs": "Введите имя для чата...",
+    "join": "Войти",
+    "anonymous": "Аноним",
+    "connecting": "Подключение...",
+    "connected": "Подключено",
+    "disconnected": "Отключено",
+    "reconnecting": "Переподключение..."
+  },
+  "groups": {
+    "title": "Турнирные таблицы",
+    "group": "Группа",
+    "team": "Команда",
+    "played": "И",
+    "won": "В",
+    "drawn": "Н",
+    "lost": "П",
+    "gf": "ЗГ",
+    "ga": "ПГ",
+    "gd": "РМ",
+    "points": "Очки",
+    "qualified": "Выходит из группы",
+    "notAvailable": "Группы пока недоступны",
+    "teamsTbd": "Команды уточняются"
+  },
+  "mirrors": {
+    "unavailable": "Это зеркало может быть недоступно.",
+    "switchTo": "Перейти на:"
+  },
+  "footer": {
+    "mirrors": "Зеркала",
+    "telegram": "Telegram-канал",
+    "disclaimer": "WC26 · Агрегатор трансляций · Все права принадлежат правообладателям"
+  },
+  "languages": {
+    "en": "English",
+    "ru": "Русский",
+    "es": "Español",
+    "pt": "Português",
+    "ar": "العربية",
+    "fr": "Français",
+    "de": "Deutsch",
+    "zh": "中文",
+    "ja": "日本語",
+    "ko": "한국어"
+  }
+}
