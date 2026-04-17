@@ -89,7 +89,11 @@ func (h *StreamHandler) Create(c *gin.Context) {
 }
 
 func (h *StreamHandler) Update(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
 	var input struct {
 		URL            string `json:"url" binding:"required"`
 		Label          string `json:"label"`
@@ -104,7 +108,7 @@ func (h *StreamHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	_, err := h.db.Exec(
+	_, err = h.db.Exec(
 		`UPDATE streams SET url=$1, label=$2, language_code=$3, region=$4, commentary_type=$5, quality=$6, is_active=COALESCE($7, is_active), priority=$8 WHERE id=$9`,
 		input.URL, input.Label, input.LanguageCode, input.Region, input.CommentaryType, input.Quality, input.IsActive, input.Priority, id,
 	)
@@ -116,7 +120,11 @@ func (h *StreamHandler) Update(c *gin.Context) {
 }
 
 func (h *StreamHandler) Delete(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
 	h.db.Exec("DELETE FROM streams WHERE id = $1", id)
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }

@@ -149,7 +149,11 @@ func (h *MatchHandler) Create(c *gin.Context) {
 }
 
 func (h *MatchHandler) Update(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
 	var input struct {
 		HomeTeamID  *int      `json:"home_team_id"`
 		AwayTeamID  *int      `json:"away_team_id"`
@@ -167,7 +171,7 @@ func (h *MatchHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	_, err := h.db.Exec(
+	_, err = h.db.Exec(
 		`UPDATE matches SET home_team_id=$1, away_team_id=$2, group_id=$3, stage=$4, venue=$5, city=$6, scheduled_at=$7, status=$8, home_score=$9, away_score=$10, minute=$11, updated_at=NOW() WHERE id=$12`,
 		input.HomeTeamID, input.AwayTeamID, input.GroupID, input.Stage, input.Venue, input.City, input.ScheduledAt, input.Status, input.HomeScore, input.AwayScore, input.Minute, id,
 	)
@@ -220,7 +224,11 @@ func (h *MatchHandler) UpdateScore(c *gin.Context) {
 }
 
 func (h *MatchHandler) Delete(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
 	h.db.Exec("DELETE FROM matches WHERE id = $1", id)
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }

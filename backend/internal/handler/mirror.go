@@ -63,13 +63,17 @@ func (h *MirrorHandler) Create(c *gin.Context) {
 }
 
 func (h *MirrorHandler) Update(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
 	var input model.Mirror
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	_, err := h.db.Exec("UPDATE mirrors SET domain=$1, is_active=$2, is_primary=$3, region=$4, priority=$5 WHERE id=$6",
+	_, err = h.db.Exec("UPDATE mirrors SET domain=$1, is_active=$2, is_primary=$3, region=$4, priority=$5 WHERE id=$6",
 		input.Domain, input.IsActive, input.IsPrimary, input.Region, input.Priority, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -79,7 +83,11 @@ func (h *MirrorHandler) Update(c *gin.Context) {
 }
 
 func (h *MirrorHandler) Delete(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
 	h.db.Exec("DELETE FROM mirrors WHERE id = $1", id)
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
@@ -87,7 +95,11 @@ func (h *MirrorHandler) Delete(c *gin.Context) {
 // Activate promotes the given mirror to primary (demotes previous primary).
 // Sends a Telegram alert so operators and channel subscribers are informed immediately.
 func (h *MirrorHandler) Activate(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
 
 	tx, err := h.db.Begin()
 	if err != nil {
