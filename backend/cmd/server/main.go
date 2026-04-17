@@ -42,6 +42,10 @@ func main() {
 	chatH := handler.NewChatHandler(hub, rdb)
 	healthH := handler.NewHealthHandler(mirrorH)
 
+	// Streamer client (headless browser → RTMP automation)
+	streamerClient := service.NewStreamerClient(cfg.StreamerURL)
+	streamLaunchH := handler.NewStreamLaunchHandler(streamerClient, db)
+
 	// Mirror health checker background service
 	healthSvc := service.NewMirrorHealthChecker(db, telegram)
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -123,6 +127,12 @@ func main() {
 		admin.PUT("/mirrors/:id", mirrorH.Update)
 		admin.DELETE("/mirrors/:id", mirrorH.Delete)
 		admin.POST("/mirrors/:id/activate", mirrorH.Activate)
+
+		// Stream launcher (headless browser → RTMP)
+		admin.POST("/stream/launch", rl(10), streamLaunchH.Launch)
+		admin.POST("/stream/stop", rl(10), streamLaunchH.Stop)
+		admin.GET("/stream/status", streamLaunchH.Status)
+		admin.POST("/stream/debug", rl(5), streamLaunchH.Debug)
 	}
 
 	// ── Server ────────────────────────────────────────────────────────────────

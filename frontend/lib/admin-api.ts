@@ -47,6 +47,17 @@ export const adminApi = {
       fetch(`${BASE}/api/admin/streams/${id}`, { method: 'DELETE', headers: authHeaders() }),
   },
 
+  streamLaunch: {
+    start: (data: { url: string; key: string; match_id?: number; width?: number; height?: number; fps?: number }) =>
+      fetch(`${BASE}/api/admin/stream/launch`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(data) }).then((r) => r.json()),
+    stop: (key?: string) =>
+      fetch(`${BASE}/api/admin/stream/stop`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ key }) }).then((r) => r.json()),
+    status: () =>
+      fetch(`${BASE}/api/admin/stream/status`, { headers: authHeaders() }).then((r) => r.json()),
+    debug: (enable: boolean, url?: string) =>
+      fetch(`${BASE}/api/admin/stream/debug`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ enable, url }) }).then((r) => r.json()),
+  },
+
   mirrors: {
     list: () => fetch(`${BASE}/api/admin/mirrors`, { headers: authHeaders() }).then((r) => r.json()),
     create: (data: Record<string, unknown>) =>

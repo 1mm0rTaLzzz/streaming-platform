@@ -50,11 +50,14 @@ services:
       ADMIN_USER: ${ADMIN_USER:-admin}
       ADMIN_PASS: ${ADMIN_PASS:-admin123}
       ENV: ${ENV:-production}
+      STREAMER_URL: http://streamer:8090
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      streamer:
+        condition: service_started
     ports:
       - "8080:8080"
     healthcheck:
@@ -62,6 +65,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
+  streamer:
+    build:
+      context: ./streamer
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      RTMP_BASE: rtmp://rtmp:1935/live
+    volumes:
+      - chromium_profile:/profile
+    shm_size: 1gb
+    depends_on:
+      - rtmp
 
   rtmp:
     image: alfg/nginx-rtmp
@@ -101,3 +117,4 @@ volumes:
   redis_data:
   frontend_dist:
   hls_data:
+  chromium_profile:

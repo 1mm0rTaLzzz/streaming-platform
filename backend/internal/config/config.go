@@ -17,6 +17,7 @@ type Config struct {
 	TelegramToken    string
 	TelegramChatID   string
 	FootballAPIKey   string
+	StreamerURL      string
 }
 
 func Load() *Config {
@@ -33,6 +34,7 @@ func Load() *Config {
 		TelegramToken:  getEnv("TELEGRAM_BOT_TOKEN", ""),
 		TelegramChatID: getEnv("TELEGRAM_CHANNEL_ID", ""),
 		FootballAPIKey: getEnv("FOOTBALL_API_KEY", ""),
+		StreamerURL:    getEnv("STREAMER_URL", "http://streamer:8090"),
 	}
 }
 

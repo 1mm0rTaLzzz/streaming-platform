@@ -25,6 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: '/admin/matches', label: 'Matches' },
     { href: '/admin/streams', label: 'Streams' },
+    { href: '/admin/streams/launch', label: 'Launch Stream' },
     { href: '/admin/mirrors', label: 'Mirrors' },
   ];
 
