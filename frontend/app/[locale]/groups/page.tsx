@@ -137,13 +137,19 @@ export default async function GroupsPage({ params }: { params: { locale: string 
   };
 
   return (
-    <div>
-      <h1
-        className="font-display text-6xl mb-10"
-        style={{ color: 'var(--text-hi)' }}
-      >
-        {tGroups('title')}
-      </h1>
+    <div className="space-y-8">
+      <div className="rounded-[28px] border p-6 md:p-8" style={{ background: 'linear-gradient(180deg, rgba(17,17,17,0.98), rgba(10,10,10,0.98))', borderColor: 'var(--outline-subtle)' }}>
+        <p className="brand-kicker mb-3">Tournament Groups</p>
+        <h1
+          className="font-display text-5xl md:text-6xl font-black italic"
+          style={{ color: 'var(--text-hi)', lineHeight: '0.92' }}
+        >
+          {tGroups('title')}
+        </h1>
+        <p className="mt-4 max-w-2xl text-sm md:text-base" style={{ color: 'var(--text-mid)' }}>
+          Track every group table, qualified positions and the race for the knockout stage.
+        </p>
+      </div>
 
       {groups.length === 0 ? (
         <div className="text-center py-24 text-sm" style={{ color: 'var(--text-mid)' }}>

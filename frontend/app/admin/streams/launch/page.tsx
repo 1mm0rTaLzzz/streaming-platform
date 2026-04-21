@@ -74,8 +74,8 @@ export default function LaunchStreamPage() {
         await pollStatus();
         setTimeout(() => setHlsReady(true), 8000);
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to start stream');
     } finally {
       setLoading(false);
     }
@@ -89,8 +89,8 @@ export default function LaunchStreamPage() {
       const data = await adminApi.streamLaunch.stop(status.active?.key);
       if (data.error) setError(data.error);
       else await pollStatus();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to stop stream');
     } finally {
       setLoading(false);
     }

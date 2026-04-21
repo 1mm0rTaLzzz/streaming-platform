@@ -45,21 +45,33 @@ export default function Header({ locale }: Props) {
     <header
       className="sticky top-0 z-50 backdrop-blur-xl"
       style={{
-        background: 'rgba(14,14,14,0.88)',
-        borderBottom: '1px solid var(--outline-dim)',
+        background: 'rgba(8,8,8,0.88)',
+        borderBottom: '1px solid var(--outline-subtle)',
+        boxShadow: '0 18px 40px rgba(0,0,0,0.28)',
       }}
     >
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-14">
 
         {/* Logo */}
-        <Link href={`/${locale}`} className="flex items-center gap-2.5">
-          <span className="text-xl leading-none">⚽</span>
+        <Link href={`/${locale}`} className="flex items-center gap-3">
           <span
-            className="font-display font-bold text-lg tracking-tight italic"
-            style={{ color: 'var(--primary)' }}
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-sm font-black"
+            style={{
+              background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)',
+              color: '#090909',
+              boxShadow: '0 10px 20px rgba(246,196,0,0.2)',
+            }}
           >
-            WORLD CUP 2026
+            WC
           </span>
+          <div className="flex flex-col leading-none">
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.28em]" style={{ color: 'var(--text-mid)' }}>
+              Matchday Hub
+            </span>
+            <span className="font-display font-bold text-lg tracking-tight italic" style={{ color: 'var(--text-hi)' }}>
+              WORLD CUP <span style={{ color: 'var(--primary)' }}>2026</span>
+            </span>
+          </div>
         </Link>
 
         {/* Nav */}
@@ -72,9 +84,10 @@ export default function Header({ locale }: Props) {
                 href={item.href}
                 className="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200"
                 style={{
-                  color:      isActive ? 'var(--primary)' : 'var(--text-mid)',
-                  background: isActive ? 'var(--primary-dim)' : 'transparent',
+                  color:      isActive ? 'var(--bg-base)' : 'var(--text-mid)',
+                  background: isActive ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)' : 'transparent',
                   fontFamily: 'var(--font-body)',
+                  boxShadow:  isActive ? '0 10px 22px rgba(246,196,0,0.16)' : 'none',
                 }}
               >
                 {item.label}
@@ -89,8 +102,9 @@ export default function Header({ locale }: Props) {
             onClick={() => setLangOpen(!langOpen)}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm transition-all duration-200"
             style={{
-              color:      'var(--text-mid)',
+              color:      'var(--text-hi)',
               background: 'var(--bg-card)',
+              border: '1px solid var(--outline-subtle)',
               fontFamily: 'var(--font-body)',
             }}
           >
@@ -114,8 +128,8 @@ export default function Header({ locale }: Props) {
                     onClick={() => switchLocale(l.code)}
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors duration-150"
                     style={{
-                      color:      l.code === locale ? 'var(--primary)' : 'var(--text-mid)',
-                      background: l.code === locale ? 'var(--primary-dim)' : 'transparent',
+                      color:      l.code === locale ? 'var(--bg-base)' : 'var(--text-mid)',
+                      background: l.code === locale ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)' : 'transparent',
                       fontFamily: 'var(--font-body)',
                     }}
                   >

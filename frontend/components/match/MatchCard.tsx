@@ -41,12 +41,13 @@ export default function MatchCard({ match, locale = 'en', labels }: Props) {
       href={`/${locale}/matches/${match.id}`}
       scroll
       className={[
-        'block group rounded-xl overflow-hidden transition-all duration-200',
-        'hover:scale-[1.012] hover:shadow-xl',
+        'block group rounded-[24px] overflow-hidden transition-all duration-300',
+        'hover:-translate-y-1 hover:shadow-xl',
         isLive ? 'live-card' : '',
       ].join(' ')}
       style={{
-        background: 'var(--bg-card)',
+        background: 'linear-gradient(180deg, rgba(21,21,21,0.98), rgba(13,13,13,0.98))',
+        border: '1px solid var(--outline-subtle)',
         opacity:    isFinished ? 0.6 : 1,
       }}
     >
@@ -56,8 +57,8 @@ export default function MatchCard({ match, locale = 'en', labels }: Props) {
         style={{ borderBottom: '1px solid var(--outline-dim)' }}
       >
         <span
-          className="text-[11px] font-semibold uppercase tracking-wider"
-          style={{ color: isLive ? 'var(--secondary)' : 'var(--text-mid)', fontFamily: 'var(--font-body)' }}
+          className="text-[11px] font-extrabold uppercase tracking-[0.18em]"
+          style={{ color: isLive ? 'var(--secondary)' : 'var(--primary)', fontFamily: 'var(--font-body)' }}
         >
           {isLive && (
             <span className="inline-flex items-center gap-1 mr-2">
@@ -100,6 +101,7 @@ export default function MatchCard({ match, locale = 'en', labels }: Props) {
                   lineHeight: '1',
                   color:      isLive ? 'var(--primary)' : 'var(--text-hi)',
                   fontVariantNumeric: 'tabular-nums',
+                  textShadow: isLive ? '0 0 24px rgba(246, 196, 0, 0.18)' : 'none',
                 }}
               >
                 {match.home_score}
@@ -149,7 +151,7 @@ export default function MatchCard({ match, locale = 'en', labels }: Props) {
       <div className="px-4 pb-3">
         <div
           className={[
-            'w-full py-2 rounded-lg text-center text-xs font-bold uppercase tracking-wider transition-all duration-200',
+            'w-full py-2.5 rounded-xl text-center text-xs font-extrabold uppercase tracking-[0.18em] transition-all duration-200',
             isLive
               ? 'btn-primary group-hover:opacity-90'
               : 'group-hover:bg-[var(--bg-highest)]',
@@ -159,7 +161,8 @@ export default function MatchCard({ match, locale = 'en', labels }: Props) {
               ? {}
               : {
                   background: 'var(--bg-bright)',
-                  color:      'var(--primary)',
+                  color:      'var(--text-hi)',
+                  border: '1px solid var(--outline-subtle)',
                   fontFamily: 'var(--font-body)',
                 }
           }

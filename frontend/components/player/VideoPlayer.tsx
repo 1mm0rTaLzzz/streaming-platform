@@ -40,7 +40,6 @@ export default function VideoPlayer({ streams, preferredLang = 'en', preferredRe
     setActiveIdx(0);
   }, [langFilter, streams]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!activeStream || !videoRef.current) return;
     const video = videoRef.current;
@@ -89,7 +88,7 @@ export default function VideoPlayer({ streams, preferredLang = 'en', preferredRe
       hlsRef.current?.destroy();
       hlsRef.current = null;
     };
-  }, [activeStream?.url]);
+  }, [activeIdx, activeStream, displayed.length]);
 
   const setQuality = (level: number) => {
     setCurrentLevel(level);
@@ -107,7 +106,14 @@ export default function VideoPlayer({ streams, preferredLang = 'en', preferredRe
   return (
     <div className="w-full">
       {/* Video */}
-      <div className="relative aspect-video bg-black rounded-xl overflow-hidden group">
+      <div
+        className="relative aspect-video overflow-hidden group rounded-[24px]"
+        style={{
+          background: '#000',
+          border: '1px solid var(--outline-subtle)',
+          boxShadow: '0 28px 60px rgba(0,0,0,0.36)',
+        }}
+      >
         <video
           ref={videoRef}
           className="w-full h-full"
@@ -120,12 +126,13 @@ export default function VideoPlayer({ streams, preferredLang = 'en', preferredRe
       <div className="mt-3 flex flex-wrap gap-2 items-center">
         {/* Language selector */}
         {uniqueLangs.length > 1 && (
-          <div className="flex items-center gap-1 bg-gray-800 rounded-lg px-2 py-1">
-            <span className="text-gray-400 text-xs">{tPlayer('language')}:</span>
+          <div className="flex items-center gap-1 rounded-xl px-2.5 py-1.5" style={{ background: 'var(--bg-card)', border: '1px solid var(--outline-subtle)' }}>
+            <span className="text-xs" style={{ color: 'var(--text-mid)' }}>{tPlayer('language')}:</span>
             <select
               value={langFilter}
               onChange={(e) => setLangFilter(e.target.value)}
-              className="bg-transparent text-white text-xs outline-none cursor-pointer"
+              className="bg-transparent text-xs outline-none cursor-pointer"
+              style={{ color: 'var(--text-hi)' }}
             >
               {uniqueLangs.map((l) => (
                 <option key={l} value={l}>{l.toUpperCase()}</option>
@@ -136,12 +143,13 @@ export default function VideoPlayer({ streams, preferredLang = 'en', preferredRe
 
         {/* Stream source selector */}
         {displayed.length > 1 && (
-          <div className="flex items-center gap-1 bg-gray-800 rounded-lg px-2 py-1">
-            <span className="text-gray-400 text-xs">{tPlayer('source')}:</span>
+          <div className="flex items-center gap-1 rounded-xl px-2.5 py-1.5" style={{ background: 'var(--bg-card)', border: '1px solid var(--outline-subtle)' }}>
+            <span className="text-xs" style={{ color: 'var(--text-mid)' }}>{tPlayer('source')}:</span>
             <select
               value={activeIdx}
               onChange={(e) => setActiveIdx(Number(e.target.value))}
-              className="bg-transparent text-white text-xs outline-none cursor-pointer"
+              className="bg-transparent text-xs outline-none cursor-pointer"
+              style={{ color: 'var(--text-hi)' }}
             >
               {displayed.map((s, i) => (
                 <option key={s.id} value={i}>{s.label || s.quality}</option>
@@ -152,12 +160,13 @@ export default function VideoPlayer({ streams, preferredLang = 'en', preferredRe
 
         {/* Quality selector */}
         {qualityLevels.length > 1 && (
-          <div className="flex items-center gap-1 bg-gray-800 rounded-lg px-2 py-1">
-            <span className="text-gray-400 text-xs">{tPlayer('quality')}:</span>
+          <div className="flex items-center gap-1 rounded-xl px-2.5 py-1.5" style={{ background: 'var(--bg-card)', border: '1px solid var(--outline-subtle)' }}>
+            <span className="text-xs" style={{ color: 'var(--text-mid)' }}>{tPlayer('quality')}:</span>
             <select
               value={currentLevel}
               onChange={(e) => setQuality(Number(e.target.value))}
-              className="bg-transparent text-white text-xs outline-none cursor-pointer"
+              className="bg-transparent text-xs outline-none cursor-pointer"
+              style={{ color: 'var(--text-hi)' }}
             >
               <option value={-1}>{tPlayer('auto')}</option>
               {qualityLevels.map((l) => (
@@ -168,7 +177,7 @@ export default function VideoPlayer({ streams, preferredLang = 'en', preferredRe
         )}
 
         {/* Active stream label */}
-        <span className="ml-auto text-gray-400 text-xs truncate max-w-xs">
+        <span className="ml-auto text-xs truncate max-w-xs" style={{ color: 'var(--primary)' }}>
           {activeStream.label || `${activeStream.language_code.toUpperCase()} · ${activeStream.quality}`}
         </span>
       </div>

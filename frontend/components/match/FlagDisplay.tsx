@@ -19,6 +19,7 @@ export default function FlagDisplay({ src, name, size = 'lg', className = '' }: 
 
   if (/^https?:\/\//i.test(normalizedSrc)) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={normalizedSrc}
         alt={name}

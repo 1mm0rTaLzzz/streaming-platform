@@ -3,32 +3,30 @@
 @tailwind utilities;
 
 :root {
-  /* Surface hierarchy — no-line approach */
-  --bg-base:     #0e0e0e;
-  --bg-low:      #131313;
-  --bg-card:     #1a1a1a;
-  --bg-bright:   #2c2c2c;
+  --bg-base:     #060606;
+  --bg-low:      #0d0d0d;
+  --bg-card:     #131313;
+  --bg-bright:   #1d1d1d;
   --bg-highest:  #262626;
 
-  /* Brand palette */
-  --primary:           #95aaff;
-  --primary-container: #829bff;
-  --primary-dim:       rgba(149,170,255,0.12);
-  --primary-glow:      rgba(149,170,255,0.25);
+  --primary:           #f6c400;
+  --primary-container: #ffdb4d;
+  --primary-strong:    #ffb800;
+  --primary-dim:       rgba(246,196,0,0.14);
+  --primary-glow:      rgba(246,196,0,0.32);
 
-  --secondary:     #ff706f;   /* Pulse Red — live */
-  --secondary-dim: rgba(255,112,111,0.12);
+  --secondary:     #ff5f57;
+  --secondary-dim: rgba(255,95,87,0.14);
+  --live:          #ff5f57;
+  --tertiary:      #fff7cc;
 
-  --tertiary:      #dbffe9;   /* Pitch Green — success */
+  --text-hi:  #f6f3ea;
+  --text-mid: #b7b09c;
+  --text-lo:  #5b5548;
 
-  /* Text */
-  --text-hi:  #f0f0f0;
-  --text-mid: #808080;
-  --text-lo:  #3a3a3a;
-
-  /* Ghost border fallback (15% opacity) */
-  --outline-subtle: rgba(255,255,255,0.08);
-  --outline-dim:    rgba(255,255,255,0.05);
+  --outline-subtle: rgba(255,255,255,0.10);
+  --outline-dim:    rgba(255,255,255,0.06);
+  --border-faint:   rgba(255,255,255,0.06);
 
   /* Fonts */
   --font-display: 'Lexend', sans-serif;
@@ -44,7 +42,10 @@ html {
 }
 
 body {
-  background: var(--bg-base);
+  background:
+    radial-gradient(circle at top, rgba(246,196,0,0.12), transparent 24%),
+    radial-gradient(circle at 80% 0%, rgba(255,255,255,0.06), transparent 18%),
+    linear-gradient(180deg, #090909 0%, #050505 100%);
   color: var(--text-hi);
   font-family: var(--font-body), system-ui, sans-serif;
   line-height: 1.5;
@@ -62,10 +63,11 @@ body {
 
 /* Primary gradient CTA */
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
-  color: #0e0e0e;
+  background: linear-gradient(135deg, var(--primary-strong) 0%, var(--primary-container) 100%);
+  color: #090909;
   font-weight: 700;
   font-family: var(--font-body);
+  box-shadow: 0 14px 34px rgba(246,196,0,0.18);
 }
 
 /* Animations */
@@ -78,8 +80,8 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes card-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255,112,111,0); }
-  50%       { box-shadow: 0 0 16px 0 rgba(255,112,111,0.12); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,95,87,0); }
+  50%       { box-shadow: 0 0 18px 0 rgba(255,95,87,0.18); }
 }
 
 .live-dot  { animation: live-pulse 1.6s ease-in-out infinite; }
@@ -91,3 +93,23 @@ body {
 .fade-up:nth-child(4) { animation-delay: 0.18s; }
 .fade-up:nth-child(5) { animation-delay: 0.24s; }
 .fade-up:nth-child(6) { animation-delay: 0.30s; }
+
+.panel-sheen {
+  position: relative;
+}
+
+.panel-sheen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(140deg, rgba(255,255,255,0.06), transparent 28%, transparent 72%, rgba(246,196,0,0.08));
+}
+
+.brand-kicker {
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.72rem;
+  font-weight: 800;
+}

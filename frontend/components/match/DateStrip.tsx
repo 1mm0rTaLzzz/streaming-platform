@@ -25,13 +25,15 @@ export default function DateStrip({ dates, selected, locale, onSelect }: Props) 
           <button
             key={date}
             onClick={() => onSelect(date)}
-            className="flex flex-col items-center shrink-0 w-14 py-2 rounded-xl transition-all duration-200"
+            className="flex flex-col items-center shrink-0 w-16 py-2.5 rounded-2xl transition-all duration-200"
             style={{
               background:  isSelected
                 ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)'
                 : 'var(--bg-card)',
               color:       isSelected ? '#0e0e0e' : 'var(--text-mid)',
               fontFamily:  'var(--font-body)',
+              border: isSelected ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--outline-subtle)',
+              boxShadow: isSelected ? '0 14px 30px rgba(246,196,0,0.18)' : 'none',
             }}
           >
             <span className="text-[10px] font-bold tracking-wider">{month}</span>

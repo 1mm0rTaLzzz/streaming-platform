@@ -1,12 +1,21 @@
 import type { Metadata } from 'next';
+import localFont from 'next/font/local';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
-import { Lexend, Manrope } from 'next/font/google';
 import Header from '@/components/layout/Header';
 import { routing } from '@/routing';
 
-const lexend  = Lexend({ subsets: ['latin'], weight: ['300','400','500','600','700','800'], variable: '--font-display' });
-const manrope = Manrope({ subsets: ['latin', 'cyrillic'], weight: ['300','400','500','600','700','800'], variable: '--font-body' });
+const displayFont = localFont({
+  src: '../fonts/GeistVF.woff',
+  variable: '--font-display',
+  weight: '100 900',
+});
+
+const bodyFont = localFont({
+  src: '../fonts/GeistMonoVF.woff',
+  variable: '--font-body',
+  weight: '100 900',
+});
 
 export async function generateMetadata({
   params,
@@ -49,7 +58,7 @@ export default async function LocaleLayout({
   const isRTL = ['ar', 'he', 'fa', 'ur'].includes(locale);
 
   return (
-    <div lang={locale} dir={isRTL ? 'rtl' : 'ltr'} className={`${lexend.variable} ${manrope.variable}`}>
+    <div lang={locale} dir={isRTL ? 'rtl' : 'ltr'} className={`${displayFont.variable} ${bodyFont.variable}`}>
         <NextIntlClientProvider messages={messages}>
           <Header locale={locale} />
           <main className="max-w-7xl mx-auto px-4 py-8 md:py-10">{children}</main>

@@ -65,8 +65,8 @@ export default function ScheduleView({ matches, locale, labels, todayStr }: Prop
       {/* Day heading */}
       {selected && (
         <h2
-          className="font-display font-bold text-2xl"
-          style={{ color: 'var(--text-hi)' }}
+          className="font-display font-black text-2xl md:text-3xl"
+          style={{ color: 'var(--text-hi)', letterSpacing: '-0.04em' }}
         >
           {formatDateHeading(selected, locale)}
         </h2>

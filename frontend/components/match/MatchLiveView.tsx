@@ -64,10 +64,11 @@ export default function MatchLiveView({ match, locale, lang, region }: Props) {
 
       {/* Score card */}
       <div
-        className="rounded-2xl p-6 md:p-8 relative overflow-hidden"
+        className="panel-sheen rounded-[30px] p-6 md:p-8 relative overflow-hidden"
         style={{
-          background: 'var(--bg-low)',
+          background: 'linear-gradient(180deg, rgba(14,14,14,0.98), rgba(9,9,9,0.98))',
           border: `1px solid ${isLive ? 'var(--live)' : 'var(--outline-subtle)'}`,
+          boxShadow: isLive ? '0 22px 50px rgba(255, 95, 87, 0.10)' : '0 18px 40px rgba(0,0,0,0.22)',
         }}
       >
         {/* Grid pattern */}
@@ -191,7 +192,7 @@ export default function MatchLiveView({ match, locale, lang, region }: Props) {
             <VideoPlayer streams={match.streams} preferredLang={lang} preferredRegion={region} />
           ) : (
             <div
-              className="flex aspect-video items-center justify-center rounded-xl"
+              className="flex aspect-video items-center justify-center rounded-[24px]"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--outline-subtle)' }}
             >
               <div className="text-center">
@@ -207,10 +208,10 @@ export default function MatchLiveView({ match, locale, lang, region }: Props) {
                 <a
                   key={lc}
                   href={`?lang=${lc}&region=${region}`}
-                  className="rounded-lg px-3 py-1 text-xs font-score font-medium transition-colors duration-200"
+                  className="rounded-xl px-3 py-1.5 text-xs font-score font-medium transition-colors duration-200"
                   style={
                     lc === lang
-                      ? { background: 'var(--primary-dim)', color: 'var(--primary)', border: '1px solid var(--primary-dim)' }
+                      ? { background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)', color: '#090909', border: '1px solid rgba(255,255,255,0.12)' }
                       : { background: 'transparent', color: 'var(--text-mid)', border: '1px solid var(--outline-subtle)' }
                   }
                 >
