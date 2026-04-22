@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
+	"github.com/redis/go-redis/v9"
 	"stream_site/backend/internal/model"
 	wslib "stream_site/backend/internal/ws"
 )
@@ -14,10 +16,11 @@ import (
 type MatchHandler struct {
 	db  *sqlx.DB
 	hub *wslib.Hub
+	rdb *redis.Client
 }
 
-func NewMatchHandler(db *sqlx.DB) *MatchHandler {
-	return &MatchHandler{db: db}
+func NewMatchHandler(db *sqlx.DB, rdb *redis.Client) *MatchHandler {
+	return &MatchHandler{db: db, rdb: rdb}
 }
 
 // SetHub injects the WebSocket hub so UpdateScore can broadcast score changes.
@@ -83,30 +86,15 @@ func (h *MatchHandler) Get(c *gin.Context) {
 		return
 	}
 
-	var match model.Match
-	err = h.db.Get(&match, "SELECT * FROM matches WHERE id = $1", id)
+	row, err := h.loadMatchDetail(c.Request.Context(), id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "match not found"})
 		return
 	}
 
-	full := model.MatchFull{Match: match}
-
-	if match.HomeTeamID != nil {
-		var ht model.Team
-		if err := h.db.Get(&ht, "SELECT * FROM teams WHERE id = $1", *match.HomeTeamID); err == nil {
-			full.HomeTeam = &ht
-		}
-	}
-	if match.AwayTeamID != nil {
-		var at model.Team
-		if err := h.db.Get(&at, "SELECT * FROM teams WHERE id = $1", *match.AwayTeamID); err == nil {
-			full.AwayTeam = &at
-		}
-	}
-
 	var streams []model.Stream
 	h.db.Select(&streams, "SELECT * FROM streams WHERE match_id = $1 AND is_active = true ORDER BY priority DESC", id)
+	full := row.toMatchFull()
 	full.Streams = streams
 
 	c.JSON(http.StatusOK, full)
@@ -145,6 +133,7 @@ func (h *MatchHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	h.invalidateStandingsCache(c.Request.Context())
 	c.JSON(http.StatusCreated, gin.H{"id": id})
 }
 
@@ -179,6 +168,7 @@ func (h *MatchHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	h.invalidateStandingsCache(c.Request.Context())
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
 
@@ -220,6 +210,7 @@ func (h *MatchHandler) UpdateScore(c *gin.Context) {
 			Status:    req.Status,
 		})
 	}
+	h.invalidateStandingsCache(c.Request.Context())
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
 
@@ -230,7 +221,80 @@ func (h *MatchHandler) Delete(c *gin.Context) {
 		return
 	}
 	h.db.Exec("DELETE FROM matches WHERE id = $1", id)
+	h.invalidateStandingsCache(c.Request.Context())
 	c.JSON(http.StatusOK, gin.H{"ok": true})
+}
+
+type matchDetailRow struct {
+	model.Match
+	HomeTeamID2    *int    `db:"home_team.id"`
+	HomeTeamCode   *string `db:"home_team.code"`
+	HomeTeamNameEN *string `db:"home_team.name_en"`
+	HomeTeamNameRU *string `db:"home_team.name_ru"`
+	HomeTeamFlag   *string `db:"home_team.flag_url"`
+	HomeTeamGroup  *int    `db:"home_team.group_id"`
+	AwayTeamID2    *int    `db:"away_team.id"`
+	AwayTeamCode   *string `db:"away_team.code"`
+	AwayTeamNameEN *string `db:"away_team.name_en"`
+	AwayTeamNameRU *string `db:"away_team.name_ru"`
+	AwayTeamFlag   *string `db:"away_team.flag_url"`
+	AwayTeamGroup  *int    `db:"away_team.group_id"`
+}
+
+func (h *MatchHandler) loadMatchDetail(ctx context.Context, id int) (*matchDetailRow, error) {
+	const query = `
+		SELECT m.*,
+			ht.id as "home_team.id", ht.code as "home_team.code", ht.name_en as "home_team.name_en", ht.name_ru as "home_team.name_ru", ht.flag_url as "home_team.flag_url", ht.group_id as "home_team.group_id",
+			at.id as "away_team.id", at.code as "away_team.code", at.name_en as "away_team.name_en", at.name_ru as "away_team.name_ru", at.flag_url as "away_team.flag_url", at.group_id as "away_team.group_id"
+		FROM matches m
+		LEFT JOIN teams ht ON m.home_team_id = ht.id
+		LEFT JOIN teams at ON m.away_team_id = at.id
+		WHERE m.id = $1`
+
+	var row matchDetailRow
+	if err := h.db.GetContext(ctx, &row, query, id); err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+func (r *matchDetailRow) toMatchFull() model.MatchFull {
+	full := model.MatchFull{Match: r.Match}
+	if r.HomeTeamID2 != nil {
+		full.HomeTeam = &model.Team{
+			ID:      *r.HomeTeamID2,
+			Code:    derefString(r.HomeTeamCode),
+			NameEN:  derefString(r.HomeTeamNameEN),
+			NameRU:  derefString(r.HomeTeamNameRU),
+			FlagURL: derefString(r.HomeTeamFlag),
+			GroupID: r.HomeTeamGroup,
+		}
+	}
+	if r.AwayTeamID2 != nil {
+		full.AwayTeam = &model.Team{
+			ID:      *r.AwayTeamID2,
+			Code:    derefString(r.AwayTeamCode),
+			NameEN:  derefString(r.AwayTeamNameEN),
+			NameRU:  derefString(r.AwayTeamNameRU),
+			FlagURL: derefString(r.AwayTeamFlag),
+			GroupID: r.AwayTeamGroup,
+		}
+	}
+	return full
+}
+
+func (h *MatchHandler) invalidateStandingsCache(ctx context.Context) {
+	if h.rdb == nil {
+		return
+	}
+	_ = h.rdb.Del(ctx, "groups:standings:v1").Err()
+}
+
+func derefString(v *string) string {
+	if v == nil {
+		return ""
+	}
+	return *v
 }
 
 // scanMatches is a simplified scanner for the joined query

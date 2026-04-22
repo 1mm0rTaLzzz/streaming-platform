@@ -46,6 +46,7 @@ type Stream struct {
 	ID             int       `db:"id" json:"id"`
 	MatchID        int       `db:"match_id" json:"match_id"`
 	URL            string    `db:"url" json:"url"`
+	SourceType     string    `db:"source_type" json:"source_type"`
 	Label          string    `db:"label" json:"label"`
 	LanguageCode   string    `db:"language_code" json:"language_code"`
 	Region         string    `db:"region" json:"region"`

@@ -33,21 +33,22 @@ func main() {
 	telegram := service.NewTelegramNotifier(cfg.TelegramToken, cfg.TelegramChatID)
 
 	// Handlers
-	matchH := handler.NewMatchHandler(db)
+	matchH := handler.NewMatchHandler(db, rdb)
 	matchH.SetHub(hub)
-	groupH := handler.NewGroupHandler(db)
+	groupH := handler.NewGroupHandler(db, rdb)
 	streamH := handler.NewStreamHandler(db)
 	authH := handler.NewAuthHandler(db, cfg.JWTSecret)
 	mirrorH := handler.NewMirrorHandler(db, telegram)
 	chatH := handler.NewChatHandler(hub, rdb)
 	healthH := handler.NewHealthHandler(mirrorH)
+	rtmpInternalH := handler.NewRTMPInternalHandler(db)
 
 	// Streamer client (headless browser → RTMP automation)
 	streamerClient := service.NewStreamerClient(cfg.StreamerURL)
 	streamLaunchH := handler.NewStreamLaunchHandler(streamerClient, db)
 
 	// Mirror health checker background service
-	healthSvc := service.NewMirrorHealthChecker(db, telegram)
+	healthSvc := service.NewMirrorHealthChecker(db, rdb, telegram)
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 	go healthSvc.Start(ctx)
@@ -58,6 +59,8 @@ func main() {
 	}
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
+	_ = r.SetTrustedProxies([]string{"127.0.0.1/32", "172.16.0.0/12", "10.0.0.0/8"})
+	r.TrustedPlatform = "CF-Connecting-IP"
 
 	// CORS — allow all mirror domains
 	r.Use(cors.New(cors.Config{
@@ -73,16 +76,17 @@ func main() {
 	rl := func(max int) gin.HandlerFunc {
 		return middleware.RateLimit(rdb, max, time.Minute)
 	}
+	cacheMW := middleware.Cache(5 * time.Second)
 
 	// ── Public API ──────────────────────────────────────────────────────────
 	api := r.Group("/api")
 	{
-		api.GET("/health", rl(60), healthH.Health)
-		api.GET("/mirrors", rl(30), healthH.Mirrors)
+		api.GET("/health", cacheMW, healthH.Health)
+		api.GET("/mirrors", rl(30), cacheMW, healthH.Mirrors)
 
 		// Matches
 		matches := api.Group("/matches")
-		matches.Use(rl(120))
+		matches.Use(rl(120), cacheMW)
 		{
 			matches.GET("", matchH.List)
 			matches.GET("/:id", matchH.Get)
@@ -90,7 +94,7 @@ func main() {
 
 		// Groups / standings
 		groups := api.Group("/groups")
-		groups.Use(rl(60))
+		groups.Use(rl(60), cacheMW)
 		{
 			groups.GET("", groupH.List)
 			groups.GET("/:id", groupH.Get)
@@ -103,6 +107,10 @@ func main() {
 		// Auth
 		api.POST("/admin/login", rl(10), authH.Login)
 	}
+
+	r.POST("/internal/rtmp/authorize", rtmpInternalH.Authorize)
+	r.POST("/internal/rtmp/done", rtmpInternalH.Done)
+	r.GET("/metrics/ws", hub.Metrics)
 
 	// ── Admin API (JWT protected) ────────────────────────────────────────────
 	admin := r.Group("/api/admin")
@@ -137,11 +145,12 @@ func main() {
 
 	// ── Server ────────────────────────────────────────────────────────────────
 	srv := &http.Server{
-		Addr:         ":" + cfg.Port,
-		Handler:      r,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		Addr:              ":" + cfg.Port,
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
 
 	go func() {

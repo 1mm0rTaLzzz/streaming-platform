@@ -3,19 +3,22 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 )
 
 type activeStream struct {
-	Key       string    `json:"key"`
-	URL       string    `json:"url"`
-	StartedAt time.Time `json:"started_at"`
+	Key       string      `json:"key"`
+	URL       string      `json:"url"`
+	StartedAt time.Time   `json:"started_at"`
+	Tail      *tailBuffer `json:"-"`
 	procs     []*exec.Cmd
 }
 
@@ -23,6 +26,48 @@ var (
 	mu     sync.Mutex
 	active *activeStream
 )
+
+type tailBuffer struct {
+	mu      sync.Mutex
+	lines   []string
+	limit   int
+	partial string
+}
+
+func newTailBuffer(limit int) *tailBuffer {
+	return &tailBuffer{limit: limit}
+}
+
+func (t *tailBuffer) Write(p []byte) (int, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	combined := t.partial + string(p)
+	parts := strings.Split(combined, "\n")
+	t.partial = parts[len(parts)-1]
+	for _, line := range parts[:len(parts)-1] {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		t.lines = append(t.lines, line)
+		if len(t.lines) > t.limit {
+			t.lines = t.lines[len(t.lines)-t.limit:]
+		}
+	}
+	return len(p), nil
+}
+
+func (t *tailBuffer) String() string {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	lines := append([]string{}, t.lines...)
+	if strings.TrimSpace(t.partial) != "" {
+		lines = append(lines, strings.TrimSpace(t.partial))
+	}
+	return strings.Join(lines, "\n")
+}
 
 func main() {
 	mux := http.NewServeMux()
@@ -69,12 +114,12 @@ func handleLaunch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	procs, err := startAll(req.URL, req.Key, req.Width, req.Height, req.FPS)
+	procs, tail, err := startAll(req.URL, req.Key, req.Width, req.Height, req.FPS)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
-	active = &activeStream{Key: req.Key, URL: req.URL, StartedAt: time.Now(), procs: procs}
+	active = &activeStream{Key: req.Key, URL: req.URL, StartedAt: time.Now(), Tail: tail, procs: procs}
 	writeJSON(w, http.StatusOK, map[string]string{"ok": "true", "key": req.Key})
 }
 
@@ -108,10 +153,16 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"active": map[string]any{
-			"key":        active.Key,
-			"url":        active.URL,
-			"started_at": active.StartedAt,
-			"uptime_s":   int(time.Since(active.StartedAt).Seconds()),
+			"key":         active.Key,
+			"url":         active.URL,
+			"started_at":  active.StartedAt,
+			"uptime_s":    int(time.Since(active.StartedAt).Seconds()),
+			"stderr_tail": func() string {
+				if active.Tail == nil {
+					return ""
+				}
+				return active.Tail.String()
+			}(),
 		},
 	})
 }
@@ -154,20 +205,32 @@ func handleDebug(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func startAll(url, key string, w, h, fps int) ([]*exec.Cmd, error) {
+func clearProfileLocks() {
+	for _, f := range []string{"/profile/SingletonLock", "/profile/SingletonCookie", "/profile/SingletonSocket"} {
+		os.Remove(f)
+	}
+}
+
+func startAll(url, key string, w, h, fps int) ([]*exec.Cmd, *tailBuffer, error) {
+	clearProfileLocks()
 	display := ":99"
 	res := fmt.Sprintf("%dx%d", w, h)
 	rtmp := fmt.Sprintf("%s/%s", rtmpBase(), key)
+	tail := newTailBuffer(40)
 
-	xvfb := spawnProc(nil, "Xvfb", display, "-screen", "0", res+"x24", "-ac", "-nolisten", "tcp")
+	xvfb := spawnProc(nil, nil, "Xvfb", display, "-screen", "0", res+"x24", "-ac", "-nolisten", "tcp")
 	time.Sleep(700 * time.Millisecond)
 
 	chrome := spawnProc(
 		[]string{"DISPLAY=" + display},
+		nil,
 		"chromium",
 		"--no-sandbox",
 		"--disable-gpu",
+		"--use-gl=swiftshader",
+		"--no-zygote",
 		"--disable-dev-shm-usage",
+		"--disable-extensions",
 		"--disable-audio-output",
 		"--mute-audio",
 		"--user-data-dir=/profile",
@@ -179,6 +242,7 @@ func startAll(url, key string, w, h, fps int) ([]*exec.Cmd, error) {
 
 	ffmpegCmd := spawnProc(
 		[]string{"DISPLAY=" + display},
+		io.MultiWriter(os.Stderr, tail),
 		"ffmpeg", "-hide_banner", "-loglevel", "warning",
 		"-f", "x11grab", "-video_size", res, "-framerate", fmt.Sprint(fps), "-i", display,
 		"-f", "lavfi", "-i", fmt.Sprintf("anullsrc=sample_rate=44100:channel_layout=stereo"),
@@ -194,33 +258,40 @@ func startAll(url, key string, w, h, fps int) ([]*exec.Cmd, error) {
 	select {
 	case err := <-exitCh:
 		stopProcs([]*exec.Cmd{xvfb, chrome})
-		return nil, fmt.Errorf("ffmpeg exited early: %v", err)
+		return nil, nil, fmt.Errorf("ffmpeg exited early: %v", err)
 	case <-time.After(2 * time.Second):
 	}
 
-	return []*exec.Cmd{xvfb, chrome, ffmpegCmd}, nil
+	return []*exec.Cmd{xvfb, chrome, ffmpegCmd}, tail, nil
 }
 
 func startDebug(url string) ([]*exec.Cmd, error) {
+	clearProfileLocks()
 	display := ":99"
-	xvfb := spawnProc(nil, "Xvfb", display, "-screen", "0", "1920x1080x24", "-ac", "-nolisten", "tcp")
+	xvfb := spawnProc(nil, nil, "Xvfb", display, "-screen", "0", "1920x1080x24", "-ac", "-nolisten", "tcp")
 	time.Sleep(700 * time.Millisecond)
 	chrome := spawnProc(
 		[]string{"DISPLAY=" + display},
+		nil,
 		"chromium",
-		"--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage",
+		"--no-sandbox", "--disable-gpu", "--use-gl=swiftshader", "--no-zygote", "--disable-dev-shm-usage",
 		"--user-data-dir=/profile",
 		"--remote-debugging-port=9222",
 		"--remote-debugging-address=0.0.0.0",
+		"--remote-allow-origins=*",
 		url,
 	)
 	return []*exec.Cmd{xvfb, chrome}, nil
 }
 
-func spawnProc(extraEnv []string, name string, args ...string) *exec.Cmd {
+func spawnProc(extraEnv []string, stderr io.Writer, name string, args ...string) *exec.Cmd {
 	cmd := exec.Command(name, args...)
 	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	if stderr != nil {
+		cmd.Stderr = stderr
+	} else {
+		cmd.Stderr = os.Stderr
+	}
 	if extraEnv != nil {
 		cmd.Env = append(os.Environ(), extraEnv...)
 	}

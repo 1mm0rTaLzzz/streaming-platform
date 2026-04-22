@@ -30,6 +30,7 @@ func (h *StreamHandler) Create(c *gin.Context) {
 	var input struct {
 		MatchID        int    `json:"match_id" binding:"required"`
 		URL            string `json:"url" binding:"required"`
+		SourceType     string `json:"source_type"`
 		Label          string `json:"label"`
 		LanguageCode   string `json:"language_code"`
 		Region         string `json:"region"`
@@ -45,6 +46,13 @@ func (h *StreamHandler) Create(c *gin.Context) {
 
 	if input.LanguageCode == "" {
 		input.LanguageCode = "en"
+	}
+	if input.SourceType == "" {
+		input.SourceType = "hls"
+	}
+	if input.SourceType != "hls" && input.SourceType != "iframe" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "source_type must be one of: hls, iframe"})
+		return
 	}
 	if input.Region == "" {
 		input.Region = "global"
@@ -77,9 +85,9 @@ func (h *StreamHandler) Create(c *gin.Context) {
 
 	var id int
 	err := h.db.QueryRow(`
-		INSERT INTO streams (match_id, url, label, language_code, region, commentary_type, quality, is_active, priority)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-		input.MatchID, input.URL, input.Label, input.LanguageCode, input.Region, input.CommentaryType, input.Quality, isActive, input.Priority,
+		INSERT INTO streams (match_id, url, source_type, label, language_code, region, commentary_type, quality, is_active, priority)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+		input.MatchID, input.URL, input.SourceType, input.Label, input.LanguageCode, input.Region, input.CommentaryType, input.Quality, isActive, input.Priority,
 	).Scan(&id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -96,6 +104,7 @@ func (h *StreamHandler) Update(c *gin.Context) {
 	}
 	var input struct {
 		URL            string `json:"url" binding:"required"`
+		SourceType     string `json:"source_type"`
 		Label          string `json:"label"`
 		LanguageCode   string `json:"language_code"`
 		Region         string `json:"region"`
@@ -108,9 +117,16 @@ func (h *StreamHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if input.SourceType == "" {
+		input.SourceType = "hls"
+	}
+	if input.SourceType != "hls" && input.SourceType != "iframe" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "source_type must be one of: hls, iframe"})
+		return
+	}
 	_, err = h.db.Exec(
-		`UPDATE streams SET url=$1, label=$2, language_code=$3, region=$4, commentary_type=$5, quality=$6, is_active=COALESCE($7, is_active), priority=$8 WHERE id=$9`,
-		input.URL, input.Label, input.LanguageCode, input.Region, input.CommentaryType, input.Quality, input.IsActive, input.Priority, id,
+		`UPDATE streams SET url=$1, source_type=$2, label=$3, language_code=$4, region=$5, commentary_type=$6, quality=$7, is_active=COALESCE($8, is_active), priority=$9 WHERE id=$10`,
+		input.URL, input.SourceType, input.Label, input.LanguageCode, input.Region, input.CommentaryType, input.Quality, input.IsActive, input.Priority, id,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

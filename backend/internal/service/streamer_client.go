@@ -31,10 +31,11 @@ type LaunchRequest struct {
 
 type StreamStatusResponse struct {
 	Active *struct {
-		Key       string    `json:"key"`
-		URL       string    `json:"url"`
-		StartedAt time.Time `json:"started_at"`
-		UptimeS   int       `json:"uptime_s"`
+		Key        string    `json:"key"`
+		URL        string    `json:"url"`
+		StartedAt  time.Time `json:"started_at"`
+		UptimeS    int       `json:"uptime_s"`
+		StderrTail string    `json:"stderr_tail"`
 	} `json:"active"`
 }
 

@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/redis/go-redis/v9"
 )
 
 // TelegramNotifier sends messages to a Telegram channel via Bot API.
@@ -61,20 +63,28 @@ func (t *TelegramNotifier) Send(text string) {
 // and sends a Telegram alert to the configured channel.
 type MirrorHealthChecker struct {
 	db       *sqlx.DB
+	rdb      *redis.Client
 	client   *http.Client
 	telegram *TelegramNotifier
+	instance string
 
 	mu         sync.Mutex
 	prevStatus map[int]string // mirrorID → last known status
 }
 
-func NewMirrorHealthChecker(db *sqlx.DB, telegram *TelegramNotifier) *MirrorHealthChecker {
+func NewMirrorHealthChecker(db *sqlx.DB, rdb *redis.Client, telegram *TelegramNotifier) *MirrorHealthChecker {
+	host, _ := os.Hostname()
+	if host == "" {
+		host = "unknown"
+	}
 	return &MirrorHealthChecker{
-		db: db,
+		db:  db,
+		rdb: rdb,
 		client: &http.Client{
 			Timeout: 5 * time.Second,
 		},
 		telegram:   telegram,
+		instance:   fmt.Sprintf("%s-%d", host, time.Now().UnixNano()),
 		prevStatus: make(map[int]string),
 	}
 }
@@ -100,6 +110,12 @@ type mirrorRow struct {
 }
 
 func (m *MirrorHealthChecker) checkAll(ctx context.Context) {
+	isLeader, err := m.acquireLeader(ctx)
+	if err != nil {
+		log.Printf("mirror health: leader lock failed: %v", err)
+		isLeader = false
+	}
+
 	var mirrors []mirrorRow
 	if err := m.db.Select(&mirrors,
 		"SELECT id, domain, is_primary FROM mirrors WHERE is_active = true ORDER BY is_primary DESC, priority ASC",
@@ -109,15 +125,15 @@ func (m *MirrorHealthChecker) checkAll(ctx context.Context) {
 	}
 
 	for _, mirror := range mirrors {
-		go m.check(ctx, mirror)
+		go m.check(ctx, mirror, isLeader)
 	}
 }
 
-func (m *MirrorHealthChecker) check(ctx context.Context, mirror mirrorRow) {
+func (m *MirrorHealthChecker) check(ctx context.Context, mirror mirrorRow, isLeader bool) {
 	url := "https://" + mirror.Domain + "/api/health"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		m.handleStatusChange(mirror, "error")
+		m.handleStatusChange(mirror, "error", isLeader)
 		return
 	}
 
@@ -130,10 +146,10 @@ func (m *MirrorHealthChecker) check(ctx context.Context, mirror mirrorRow) {
 		resp.Body.Close()
 	}
 
-	m.handleStatusChange(mirror, status)
+	m.handleStatusChange(mirror, status, isLeader)
 }
 
-func (m *MirrorHealthChecker) handleStatusChange(mirror mirrorRow, newStatus string) {
+func (m *MirrorHealthChecker) handleStatusChange(mirror mirrorRow, newStatus string, isLeader bool) {
 	m.mu.Lock()
 	prev := m.prevStatus[mirror.ID]
 	m.prevStatus[mirror.ID] = newStatus
@@ -141,8 +157,13 @@ func (m *MirrorHealthChecker) handleStatusChange(mirror mirrorRow, newStatus str
 
 	m.updateStatus(mirror.ID, newStatus)
 
-	// No transition — nothing to do
-	if prev == newStatus || prev == "" {
+	if !isLeader {
+		return
+	}
+	if prev == newStatus {
+		return
+	}
+	if prev == "" && newStatus == "healthy" {
 		return
 	}
 
@@ -175,31 +196,40 @@ func (m *MirrorHealthChecker) handleStatusChange(mirror mirrorRow, newStatus str
 // promoteNextHealthy demotes current primary and promotes the next healthy non-primary mirror.
 // Returns the domain of the newly promoted mirror, or "" if none available.
 func (m *MirrorHealthChecker) promoteNextHealthy(downID int) string {
-	// Demote current primary
-	_, err := m.db.Exec("UPDATE mirrors SET is_primary = false WHERE id = $1", downID)
+	tx, err := m.db.Beginx()
 	if err != nil {
-		log.Printf("mirror health: failed to demote mirror %d: %v", downID, err)
+		log.Printf("mirror health: failed to start promote tx: %v", err)
+		return ""
 	}
 
-	// Find next best healthy mirror (highest priority, already active)
 	var next struct {
 		ID     int    `db:"id"`
 		Domain string `db:"domain"`
 	}
-	err = m.db.Get(&next,
+	err = tx.Get(&next,
 		`SELECT id, domain FROM mirrors
 		 WHERE is_active = true AND health_status = 'healthy' AND id != $1
 		 ORDER BY priority ASC, id ASC LIMIT 1`,
 		downID,
 	)
 	if err != nil {
+		_ = tx.Rollback()
 		log.Printf("mirror health: no healthy standby available: %v", err)
 		return ""
 	}
 
-	_, err = m.db.Exec("UPDATE mirrors SET is_primary = true WHERE id = $1", next.ID)
-	if err != nil {
+	if _, err = tx.Exec("UPDATE mirrors SET is_primary = false WHERE is_primary = true"); err != nil {
+		_ = tx.Rollback()
+		log.Printf("mirror health: failed to demote primaries: %v", err)
+		return ""
+	}
+	if _, err = tx.Exec("UPDATE mirrors SET is_primary = true WHERE id = $1", next.ID); err != nil {
+		_ = tx.Rollback()
 		log.Printf("mirror health: failed to promote mirror %d: %v", next.ID, err)
+		return ""
+	}
+	if err = tx.Commit(); err != nil {
+		log.Printf("mirror health: failed to commit promote tx: %v", err)
 		return ""
 	}
 
@@ -215,4 +245,25 @@ func (m *MirrorHealthChecker) updateStatus(id int, status string) {
 	if err != nil {
 		log.Printf("mirror health: failed to update status for mirror %d: %v", id, err)
 	}
+}
+
+func (m *MirrorHealthChecker) acquireLeader(ctx context.Context) (bool, error) {
+	const leaderKey = "ch:mirror-leader"
+	ok, err := m.rdb.SetNX(ctx, leaderKey, m.instance, 25*time.Second).Result()
+	if err != nil {
+		return false, err
+	}
+	if ok {
+		return true, nil
+	}
+
+	current, err := m.rdb.Get(ctx, leaderKey).Result()
+	if err != nil {
+		return false, err
+	}
+	if current != m.instance {
+		return false, nil
+	}
+
+	return true, m.rdb.Expire(ctx, leaderKey, 25*time.Second).Err()
 }

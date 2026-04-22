@@ -1,40 +1,49 @@
 package handler
 
 import (
+	"context"
+	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
+	"github.com/redis/go-redis/v9"
 	"stream_site/backend/internal/model"
 )
 
 type GroupHandler struct {
-	db *sqlx.DB
+	db  *sqlx.DB
+	rdb *redis.Client
 }
 
-func NewGroupHandler(db *sqlx.DB) *GroupHandler {
-	return &GroupHandler{db: db}
+func NewGroupHandler(db *sqlx.DB, rdb *redis.Client) *GroupHandler {
+	return &GroupHandler{db: db, rdb: rdb}
 }
 
 func (h *GroupHandler) List(c *gin.Context) {
-	var groups []model.Group
-	if err := h.db.Select(&groups, "SELECT * FROM groups ORDER BY name"); err != nil {
+	ctx := c.Request.Context()
+	if cached, err := h.rdb.Get(ctx, "groups:standings:v1").Bytes(); err == nil {
+		c.Data(http.StatusOK, "application/json", cached)
+		return
+	}
+
+	groups, err := h.loadGroupsWithStandings(ctx, nil)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	type GroupWithTeams struct {
-		model.Group
-		Teams []TeamStanding `json:"teams"`
+	payload := gin.H{"groups": groups}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
-	result := make([]GroupWithTeams, 0, len(groups))
-	for _, g := range groups {
-		teams := h.getStandings(g.ID)
-		result = append(result, GroupWithTeams{Group: g, Teams: teams})
-	}
-	c.JSON(http.StatusOK, gin.H{"groups": result})
+	_ = h.rdb.Set(ctx, "groups:standings:v1", data, 30*time.Second).Err()
+	c.Data(http.StatusOK, "application/json", data)
 }
 
 func (h *GroupHandler) Get(c *gin.Context) {
@@ -43,13 +52,17 @@ func (h *GroupHandler) Get(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	var g model.Group
-	if err := h.db.Get(&g, "SELECT * FROM groups WHERE id = $1", id); err != nil {
+	groups, err := h.loadGroupsWithStandings(c.Request.Context(), &id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if len(groups) == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "group not found"})
 		return
 	}
-	teams := h.getStandings(id)
-	c.JSON(http.StatusOK, gin.H{"group": g, "standings": teams})
+
+	c.JSON(http.StatusOK, gin.H{"group": gin.H{"id": groups[0].ID, "name": groups[0].Name}, "standings": groups[0].Teams})
 }
 
 type TeamStanding struct {
@@ -64,83 +77,125 @@ type TeamStanding struct {
 	Points int `json:"points"`
 }
 
-func (h *GroupHandler) getStandings(groupID int) []TeamStanding {
-	// Calculate standings from finished matches
+type GroupWithTeams struct {
+	ID    int            `json:"id"`
+	Name  string         `json:"name"`
+	Teams []TeamStanding `json:"teams"`
+}
+
+type groupQueryRow struct {
+	ID    int             `db:"id"`
+	Name  string          `db:"name"`
+	Teams json.RawMessage `db:"teams"`
+}
+
+func (h *GroupHandler) loadGroupsWithStandings(ctx context.Context, groupID *int) ([]GroupWithTeams, error) {
 	query := `
-		WITH match_teams AS (
-			SELECT DISTINCT team_id
-			FROM (
-				SELECT m.home_team_id AS team_id
-				FROM matches m
-				WHERE m.group_id = $1 AND m.stage = 'group' AND m.home_team_id IS NOT NULL
-				UNION
-				SELECT m.away_team_id AS team_id
-				FROM matches m
-				WHERE m.group_id = $1 AND m.stage = 'group' AND m.away_team_id IS NOT NULL
-			) t
+		WITH team_stats AS (
+			SELECT
+				g.id AS group_id,
+				t.id,
+				t.code,
+				t.name_en,
+				t.name_ru,
+				t.flag_url,
+				t.group_id AS team_group_id,
+				COUNT(m.id) AS played,
+				COALESCE(SUM(CASE
+					WHEN m.home_team_id = t.id AND m.home_score > m.away_score THEN 1
+					WHEN m.away_team_id = t.id AND m.away_score > m.home_score THEN 1
+					ELSE 0 END), 0) AS won,
+				COALESCE(SUM(CASE
+					WHEN m.id IS NOT NULL AND m.home_score = m.away_score THEN 1
+					ELSE 0 END), 0) AS drawn,
+				COALESCE(SUM(CASE
+					WHEN m.home_team_id = t.id AND m.home_score < m.away_score THEN 1
+					WHEN m.away_team_id = t.id AND m.away_score < m.home_score THEN 1
+					ELSE 0 END), 0) AS lost,
+				COALESCE(SUM(CASE
+					WHEN m.home_team_id = t.id THEN m.home_score
+					WHEN m.away_team_id = t.id THEN m.away_score
+					ELSE 0 END), 0) AS gf,
+				COALESCE(SUM(CASE
+					WHEN m.home_team_id = t.id THEN m.away_score
+					WHEN m.away_team_id = t.id THEN m.home_score
+					ELSE 0 END), 0) AS ga
+			FROM groups g
+			LEFT JOIN teams t ON t.group_id = g.id
+			LEFT JOIN matches m ON (
+				(m.home_team_id = t.id OR m.away_team_id = t.id)
+				AND m.group_id = g.id
+				AND m.stage = 'group'
+				AND m.status = 'finished'
+			)
+			WHERE ($1::int IS NULL OR g.id = $1)
+			GROUP BY g.id, t.id
 		),
-		group_teams AS (
-			SELECT team_id FROM match_teams
-			UNION
-			SELECT t.id AS team_id
-			FROM teams t
-			WHERE t.group_id = $1
-			  AND NOT EXISTS (SELECT 1 FROM match_teams)
+		ranked AS (
+			SELECT
+				group_id,
+				id,
+				code,
+				name_en,
+				name_ru,
+				flag_url,
+				team_group_id,
+				played,
+				won,
+				drawn,
+				lost,
+				gf,
+				ga,
+				(gf - ga) AS gd,
+				(won * 3 + drawn) AS points
+			FROM team_stats
+			WHERE id IS NOT NULL
 		)
-		SELECT t.*,
-			COUNT(m.id) as played,
-			SUM(CASE
-				WHEN m.home_team_id = t.id AND m.home_score > m.away_score THEN 1
-				WHEN m.away_team_id = t.id AND m.away_score > m.home_score THEN 1
-				ELSE 0 END) as won,
-			SUM(CASE WHEN m.home_score = m.away_score THEN 1 ELSE 0 END) as drawn,
-			SUM(CASE
-				WHEN m.home_team_id = t.id AND m.home_score < m.away_score THEN 1
-				WHEN m.away_team_id = t.id AND m.away_score < m.home_score THEN 1
-				ELSE 0 END) as lost,
-			SUM(CASE WHEN m.home_team_id = t.id THEN m.home_score WHEN m.away_team_id = t.id THEN m.away_score ELSE 0 END) as gf,
-			SUM(CASE WHEN m.home_team_id = t.id THEN m.away_score WHEN m.away_team_id = t.id THEN m.home_score ELSE 0 END) as ga
-		FROM group_teams gt
-		JOIN teams t ON t.id = gt.team_id
-		LEFT JOIN matches m ON (m.home_team_id = t.id OR m.away_team_id = t.id)
-			AND m.group_id = $1 AND m.stage = 'group' AND m.status = 'finished'
-		GROUP BY t.id
-		ORDER BY
-			(SUM(CASE WHEN m.home_team_id = t.id AND m.home_score > m.away_score THEN 3
-				WHEN m.away_team_id = t.id AND m.away_score > m.home_score THEN 3
-				WHEN m.home_score = m.away_score AND m.id IS NOT NULL THEN 1
-				ELSE 0 END)) DESC,
-			(SUM(CASE WHEN m.home_team_id = t.id THEN m.home_score WHEN m.away_team_id = t.id THEN m.away_score ELSE 0 END) -
-			 SUM(CASE WHEN m.home_team_id = t.id THEN m.away_score WHEN m.away_team_id = t.id THEN m.home_score ELSE 0 END)) DESC,
-			t.name_en ASC`
+		SELECT
+			g.id,
+			g.name,
+			COALESCE(
+				json_agg(
+					json_build_object(
+						'id', r.id,
+						'code', r.code,
+						'name_en', r.name_en,
+						'name_ru', r.name_ru,
+						'flag_url', r.flag_url,
+						'group_id', r.team_group_id,
+						'played', r.played,
+						'won', r.won,
+						'drawn', r.drawn,
+						'lost', r.lost,
+						'gf', r.gf,
+						'ga', r.ga,
+						'gd', r.gd,
+						'points', r.points
+					)
+					ORDER BY r.points DESC, r.gd DESC, r.name_en ASC
+				) FILTER (WHERE r.id IS NOT NULL),
+				'[]'::json
+			) AS teams
+		FROM groups g
+		LEFT JOIN ranked r ON r.group_id = g.id
+		WHERE ($1::int IS NULL OR g.id = $1)
+		GROUP BY g.id, g.name
+		ORDER BY g.name ASC`
 
-	rows, err := h.db.Queryx(query, groupID)
-	if err != nil {
-		return nil
+	rows := []groupQueryRow{}
+	if err := h.db.SelectContext(ctx, &rows, query, groupID); err != nil {
+		return nil, err
 	}
-	defer rows.Close()
 
-	var standings []TeamStanding
-	for rows.Next() {
-		var ts struct {
-			model.Team
-			Played int `db:"played"`
-			Won    int `db:"won"`
-			Drawn  int `db:"drawn"`
-			Lost   int `db:"lost"`
-			GF     int `db:"gf"`
-			GA     int `db:"ga"`
+	result := make([]GroupWithTeams, 0, len(rows))
+	for _, row := range rows {
+		teams := []TeamStanding{}
+		if len(row.Teams) > 0 {
+			if err := json.Unmarshal(row.Teams, &teams); err != nil {
+				return nil, err
+			}
 		}
-		if err := rows.StructScan(&ts); err != nil {
-			continue
-		}
-		gd := ts.GF - ts.GA
-		points := ts.Won*3 + ts.Drawn
-		standings = append(standings, TeamStanding{
-			Team: ts.Team, Played: ts.Played, Won: ts.Won,
-			Drawn: ts.Drawn, Lost: ts.Lost, GF: ts.GF, GA: ts.GA,
-			GD: gd, Points: points,
-		})
+		result = append(result, GroupWithTeams{ID: row.ID, Name: row.Name, Teams: teams})
 	}
-	return standings
+	return result, nil
 }

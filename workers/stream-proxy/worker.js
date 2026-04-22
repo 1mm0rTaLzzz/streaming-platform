@@ -227,9 +227,7 @@ function isBlockedAddressLiteral(hostname) {
   if (a === 172 && b >= 16 && b <= 31) return true;
   if (a === 192 && b === 168) return true;
 
-  return false;
-}
-
+  return fals
 function safeDecodeURIComponent(value) {
   try {
     return decodeURIComponent(value);

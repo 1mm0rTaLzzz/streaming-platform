@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -31,6 +32,24 @@ func (h *StreamLaunchHandler) Launch(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	req.URL = strings.TrimSpace(req.URL)
+	req.Key = strings.TrimSpace(req.Key)
+	if req.URL == "" || req.Key == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "url and key are required"})
+		return
+	}
+
+	_, err := h.db.Exec(`
+		INSERT INTO stream_keys (key, match_id, is_active, updated_at)
+		VALUES ($1, $2, true, NOW())
+		ON CONFLICT (key) DO UPDATE SET match_id = EXCLUDED.match_id, is_active = true, updated_at = NOW()`,
+		req.Key, req.MatchID,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	if err := h.client.Launch(service.LaunchRequest{
 		URL:    req.URL,
 		Key:    req.Key,
@@ -38,6 +57,7 @@ func (h *StreamLaunchHandler) Launch(c *gin.Context) {
 		Height: req.Height,
 		FPS:    req.FPS,
 	}); err != nil {
+		_, _ = h.db.Exec("UPDATE stream_keys SET is_active = false, updated_at = NOW() WHERE key = $1", req.Key)
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 		return
 	}
@@ -61,6 +81,10 @@ func (h *StreamLaunchHandler) Stop(c *gin.Context) {
 	if err := h.client.Stop(req.Key); err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 		return
+	}
+	if req.Key != "" {
+		_, _ = h.db.Exec("UPDATE stream_keys SET is_active = false, updated_at = NOW() WHERE key = $1", req.Key)
+		_, _ = h.db.Exec("UPDATE streams SET is_active = false WHERE url = $1", fmt.Sprintf("/live/%s.m3u8", req.Key))
 	}
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }

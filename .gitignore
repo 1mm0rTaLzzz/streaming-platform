@@ -2,6 +2,8 @@
 .env
 .env.*
 !.env.example
+!.env.prod.example
+.env.prod
 docker/.env
 
 # Claude / AI tooling
@@ -42,6 +44,7 @@ build/
 dist/
 .next/
 out/
+docker/nginx/certs/
 
 # Logs
 *.log

@@ -3,10 +3,14 @@ package ws
 import (
 	"context"
 	"encoding/json"
+	"log"
+	"net/http"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -38,6 +42,7 @@ type Hub struct {
 	rooms   map[int]map[*Client]struct{}
 	rdb     *redis.Client
 	ctx     context.Context
+	dropped uint64
 }
 
 func NewHub(rdb *redis.Client) *Hub {
@@ -122,6 +127,7 @@ func (h *Hub) broadcast(channel string, data []byte) {
 				select {
 				case c.Send <- data:
 				default:
+					h.markDropped(channel)
 				}
 			}
 		}
@@ -136,10 +142,46 @@ func (h *Hub) broadcast(channel string, data []byte) {
 				select {
 				case c.Send <- data:
 				default:
+					h.markDropped(channel)
 				}
 			}
 		}
 	}
+}
+
+func (h *Hub) markDropped(channel string) {
+	dropped := atomic.AddUint64(&h.dropped, 1)
+	if dropped%100 == 0 {
+		log.Printf("ws hub: dropped %d messages so far (latest channel=%s)", dropped, channel)
+	}
+}
+
+func (h *Hub) Metrics(c *gin.Context) {
+	activeRooms, activeClients, maxLag := h.snapshotMetrics()
+	c.JSON(http.StatusOK, gin.H{
+		"ws_active_rooms":   activeRooms,
+		"ws_active_clients": activeClients,
+		"ws_dropped_total":  atomic.LoadUint64(&h.dropped),
+		"ws_max_lag":        maxLag,
+	})
+}
+
+func (h *Hub) snapshotMetrics() (int, int, int) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	activeRooms := len(h.rooms)
+	activeClients := 0
+	maxLag := 0
+	for _, room := range h.rooms {
+		activeClients += len(room)
+		for client := range room {
+			if lag := len(client.Send); lag > maxLag {
+				maxLag = lag
+			}
+		}
+	}
+	return activeRooms, activeClients, maxLag
 }
 
 func intToStr(i int) string {
