@@ -2,6 +2,8 @@ services:
   postgres:
     env_file:
       - ../.env.prod
+    environment:
+      ENABLE_DEV_ADMIN_BOOTSTRAP: ${ENABLE_DEV_ADMIN_BOOTSTRAP:-false}
     deploy:
       resources:
         limits:
@@ -21,12 +23,32 @@ services:
   backend:
     env_file:
       - ../.env.prod
+    environment:
+      ENV: ${ENV:-production}
     deploy:
       replicas: 2
       resources:
         limits:
           cpus: "1.0"
           memory: 1G
+
+  frontend_main:
+    env_file:
+      - ../.env.prod
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
+
+  frontend_stream:
+    env_file:
+      - ../.env.prod
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
 
   nginx:
     ports:
@@ -53,12 +75,3 @@ services:
         limits:
           cpus: "1.0"
           memory: 512M
-
-  streamer:
-    env_file:
-      - ../.env.prod
-    deploy:
-      resources:
-        limits:
-          cpus: "2.0"
-          memory: 2G

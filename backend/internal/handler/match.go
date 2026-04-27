@@ -102,17 +102,18 @@ func (h *MatchHandler) Get(c *gin.Context) {
 
 func (h *MatchHandler) Create(c *gin.Context) {
 	var input struct {
-		HomeTeamID  *int      `json:"home_team_id"`
-		AwayTeamID  *int      `json:"away_team_id"`
-		GroupID     *int      `json:"group_id"`
-		Stage       string    `json:"stage" binding:"required"`
-		Venue       string    `json:"venue"`
-		City        string    `json:"city"`
-		ScheduledAt time.Time `json:"scheduled_at" binding:"required"`
-		Status      string    `json:"status"`
-		HomeScore   int       `json:"home_score"`
-		AwayScore   int       `json:"away_score"`
-		Minute      *int      `json:"minute"`
+		HomeTeamID        *int      `json:"home_team_id"`
+		AwayTeamID        *int      `json:"away_team_id"`
+		GroupID           *int      `json:"group_id"`
+		Stage             string    `json:"stage" binding:"required"`
+		Venue             string    `json:"venue"`
+		City              string    `json:"city"`
+		ScheduledAt       time.Time `json:"scheduled_at" binding:"required"`
+		Status            string    `json:"status"`
+		HomeScore         int       `json:"home_score"`
+		AwayScore         int       `json:"away_score"`
+		Minute            *int      `json:"minute"`
+		StreamRedirectURL string    `json:"stream_redirect_url"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -122,12 +123,12 @@ func (h *MatchHandler) Create(c *gin.Context) {
 	if status == "" {
 		status = "scheduled"
 	}
-	query := `INSERT INTO matches (home_team_id, away_team_id, group_id, stage, venue, city, scheduled_at, status, home_score, away_score, minute)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`
+	query := `INSERT INTO matches (home_team_id, away_team_id, group_id, stage, venue, city, scheduled_at, status, home_score, away_score, minute, stream_redirect_url)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`
 	var id int
 	err := h.db.QueryRow(query,
 		input.HomeTeamID, input.AwayTeamID, input.GroupID,
-		input.Stage, input.Venue, input.City, input.ScheduledAt, status, input.HomeScore, input.AwayScore, input.Minute,
+		input.Stage, input.Venue, input.City, input.ScheduledAt, status, input.HomeScore, input.AwayScore, input.Minute, input.StreamRedirectURL,
 	).Scan(&id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -152,17 +153,18 @@ func (h *MatchHandler) Update(c *gin.Context) {
 		City        string    `json:"city"`
 		ScheduledAt time.Time `json:"scheduled_at" binding:"required"`
 		Status      string    `json:"status" binding:"required"`
-		HomeScore   int       `json:"home_score"`
-		AwayScore   int       `json:"away_score"`
-		Minute      *int      `json:"minute"`
+		HomeScore         int       `json:"home_score"`
+		AwayScore         int       `json:"away_score"`
+		Minute            *int      `json:"minute"`
+		StreamRedirectURL string    `json:"stream_redirect_url"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	_, err = h.db.Exec(
-		`UPDATE matches SET home_team_id=$1, away_team_id=$2, group_id=$3, stage=$4, venue=$5, city=$6, scheduled_at=$7, status=$8, home_score=$9, away_score=$10, minute=$11, updated_at=NOW() WHERE id=$12`,
-		input.HomeTeamID, input.AwayTeamID, input.GroupID, input.Stage, input.Venue, input.City, input.ScheduledAt, input.Status, input.HomeScore, input.AwayScore, input.Minute, id,
+		`UPDATE matches SET home_team_id=$1, away_team_id=$2, group_id=$3, stage=$4, venue=$5, city=$6, scheduled_at=$7, status=$8, home_score=$9, away_score=$10, minute=$11, stream_redirect_url=$12, updated_at=NOW() WHERE id=$13`,
+		input.HomeTeamID, input.AwayTeamID, input.GroupID, input.Stage, input.Venue, input.City, input.ScheduledAt, input.Status, input.HomeScore, input.AwayScore, input.Minute, input.StreamRedirectURL, id,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

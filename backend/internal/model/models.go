@@ -30,16 +30,72 @@ type Match struct {
 	Status      string    `db:"status" json:"status"`
 	HomeScore   int       `db:"home_score" json:"home_score"`
 	AwayScore   int       `db:"away_score" json:"away_score"`
-	Minute      *int      `db:"minute" json:"minute,omitempty"`
-	CreatedAt   time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
+	Minute            *int      `db:"minute" json:"minute,omitempty"`
+	StreamRedirectURL string    `db:"stream_redirect_url" json:"stream_redirect_url"`
+	CreatedAt         time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt         time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type MatchFull struct {
 	Match
-	HomeTeam *Team    `json:"home_team,omitempty"`
-	AwayTeam *Team    `json:"away_team,omitempty"`
-	Streams  []Stream `json:"streams,omitempty"`
+	HomeTeam *Team       `json:"home_team,omitempty"`
+	AwayTeam *Team       `json:"away_team,omitempty"`
+	Streams  []Stream    `json:"streams,omitempty"`
+	Stats    *MatchStats `json:"stats,omitempty"`
+}
+
+type MatchEvent struct {
+	ID         int    `db:"id" json:"id"`
+	MatchID    int    `db:"match_id" json:"match_id"`
+	Minute     int    `db:"minute" json:"minute"`
+	Type       string `db:"type" json:"type"`
+	Team       string `db:"team" json:"team"`
+	PlayerName string `db:"player_name" json:"player_name"`
+	Detail     string `db:"detail" json:"detail"`
+}
+
+type MatchLineup struct {
+	ID         int    `db:"id" json:"id"`
+	MatchID    int    `db:"match_id" json:"match_id"`
+	Team       string `db:"team" json:"team"`
+	PlayerName string `db:"player_name" json:"player_name"`
+	Number     int    `db:"number" json:"number"`
+	Position   string `db:"position" json:"position"`
+	IsStarter  bool   `db:"is_starter" json:"is_starter"`
+}
+
+type FormResult struct {
+	Result string `json:"result"`
+	Score  string `json:"score"`
+	Stage  string `json:"stage"`
+	IsHome bool   `json:"is_home"`
+}
+
+type H2HMeeting struct {
+	ScheduledAt string `json:"scheduled_at"`
+	HomeScore   int    `json:"home_score"`
+	AwayScore   int    `json:"away_score"`
+	Stage       string `json:"stage"`
+	Status      string `json:"status"`
+	Winner      string `json:"winner"`
+}
+
+type H2HStats struct {
+	HomeWins  int          `json:"home_wins"`
+	AwayWins  int          `json:"away_wins"`
+	Draws     int          `json:"draws"`
+	Total     int          `json:"total"`
+	HomeGoals int          `json:"home_goals"`
+	AwayGoals int          `json:"away_goals"`
+	Meetings  []H2HMeeting `json:"meetings"`
+}
+
+type MatchStats struct {
+	Events   []MatchEvent  `json:"events"`
+	Lineups  []MatchLineup `json:"lineups"`
+	H2H      H2HStats      `json:"h2h"`
+	HomeForm []FormResult  `json:"home_form"`
+	AwayForm []FormResult  `json:"away_form"`
 }
 
 type Stream struct {

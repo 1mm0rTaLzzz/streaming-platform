@@ -19,7 +19,10 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("config error: %v", err)
+	}
 
 	// Infrastructure
 	db := repository.NewPostgres(cfg.DatabaseURL)
@@ -35,6 +38,7 @@ func main() {
 	// Handlers
 	matchH := handler.NewMatchHandler(db, rdb)
 	matchH.SetHub(hub)
+	statsH := handler.NewStatsHandler(db)
 	groupH := handler.NewGroupHandler(db, rdb)
 	streamH := handler.NewStreamHandler(db)
 	authH := handler.NewAuthHandler(db, cfg.JWTSecret)
@@ -42,10 +46,6 @@ func main() {
 	chatH := handler.NewChatHandler(hub, rdb)
 	healthH := handler.NewHealthHandler(mirrorH)
 	rtmpInternalH := handler.NewRTMPInternalHandler(db)
-
-	// Streamer client (headless browser → RTMP automation)
-	streamerClient := service.NewStreamerClient(cfg.StreamerURL)
-	streamLaunchH := handler.NewStreamLaunchHandler(streamerClient, db)
 
 	// Mirror health checker background service
 	healthSvc := service.NewMirrorHealthChecker(db, rdb, telegram)
@@ -100,6 +100,9 @@ func main() {
 			groups.GET("/:id", groupH.Get)
 		}
 
+		// Match stats (H2H, form, events, lineups)
+		api.GET("/matches/:id/stats", rl(60), statsH.GetMatchStats)
+
 		// WebSocket chat
 		api.GET("/ws/chat/:matchId", chatH.Chat)
 		api.GET("/ws/live", chatH.LiveScores)
@@ -122,6 +125,10 @@ func main() {
 		admin.PUT("/matches/:id", matchH.Update)
 		admin.PUT("/matches/:id/score", matchH.UpdateScore)
 		admin.DELETE("/matches/:id", matchH.Delete)
+		admin.POST("/matches/:id/events", statsH.CreateEvent)
+		admin.DELETE("/matches/:id/events/:eid", statsH.DeleteEvent)
+		admin.POST("/matches/:id/lineups", statsH.CreateLineup)
+		admin.DELETE("/matches/:id/lineups/:lid", statsH.DeleteLineup)
 
 		// Streams
 		admin.GET("/streams", streamH.List)
@@ -136,11 +143,6 @@ func main() {
 		admin.DELETE("/mirrors/:id", mirrorH.Delete)
 		admin.POST("/mirrors/:id/activate", mirrorH.Activate)
 
-		// Stream launcher (headless browser → RTMP)
-		admin.POST("/stream/launch", rl(10), streamLaunchH.Launch)
-		admin.POST("/stream/stop", rl(10), streamLaunchH.Stop)
-		admin.GET("/stream/status", streamLaunchH.Status)
-		admin.POST("/stream/debug", rl(5), streamLaunchH.Debug)
 	}
 
 	// ── Server ────────────────────────────────────────────────────────────────

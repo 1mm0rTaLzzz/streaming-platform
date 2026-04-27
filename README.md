@@ -1,124 +1,79 @@
 # WC 2026 Streaming Platform
 
-Live streaming platform for FIFA World Cup 2026. Aggregates HLS streams, supports 10+ languages, mirror system for geo-resilience, automated browser-based streaming via headless Chromium.
+Streaming platform for FIFA World Cup 2026. The stack serves a multilingual main site, a separate stream surface, a Go API, mirror discovery, RTMP ingest, and HLS restreaming.
 
-## Architecture
+## Runtime
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         VIEWERS (global)                            │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │ HTTPS
-                ┌──────────────▼──────────────┐
-                │       Cloudflare CDN        │
-                │  DDoS protection, GeoDNS,   │
-                │  origin IP hidden           │
-                └──────────────┬──────────────┘
-                               │
-                ┌──────────────▼──────────────┐
-                │         nginx :80           │  ← static frontend
-                │   /api/*   → backend:8080   │  ← API proxy
-                │   /live/*  → rtmp:80/hls/   │  ← HLS stream proxy
-                │   /hls/*   → hls_proxy:8089 │  ← restream proxy
-                └──┬──────┬──────┬────────────┘
-                   │      │      │
-        ┌──────────▼─┐  ┌─▼──────▼────────┐  ┌──────────────────┐
-        │  backend   │  │   rtmp service  │  │   hls_proxy      │
-        │  Go + Gin  │  │  alfg/nginx-rtmp│  │  restream proxy  │
-        │  :8080     │  │  RTMP :1935     │  │  :8089           │
-        │            │  │  HLS  :80       │  └──────────────────┘
-        │  REST API  │  └────────▲────────┘
-        │  WebSocket │           │ rtmp push
-        │  JWT auth  │   ┌────────┴─────────┐
-        └──┬──────┬──┘   │    streamer      │
-           │      │      │  Chromium+Xvfb   │
-     ┌─────▼─┐  ┌─▼──┐   │  ffmpeg capture  │
-     │  PG   │  │Redis│  │  :8090 HTTP API  │
-     │  :5432│  │:6379│  └────────▲─────────┘
-     └───────┘  └────┘            │ CDP :9222
-                                  │ (Google login setup)
-                         ┌────────┴─────────┐
-                         │  Admin Browser   │
-                         │  SSH tunnel      │
-                         └──────────────────┘
-```
-
-## Stream Flow
-
-### OBS / External Stream
-```
-OBS → rtmp://server:1935/live/{key} → nginx-rtmp → HLS segments → /live/{key}.m3u8 → viewers
-```
-
-### Automated Browser Stream (headless)
-```
-Admin UI (/admin/streams/launch)
-  → POST /api/admin/stream/launch
-  → streamer service
-  → Xvfb :99 + Chromium --kiosk {url}
-  → ffmpeg x11grab :99 → rtmp://rtmp:1935/live/{key}
-  → nginx-rtmp → HLS → viewers
-```
-
-### External HLS Aggregation
-```
-3rd-party m3u8 URL → stored in DB (streams table) → served via admin-added stream records → HLS.js player
+```text
+browser
+  ├─ http://localhost/              -> nginx -> frontend_main
+  ├─ http://localhost/api/*         -> nginx -> backend
+  ├─ http://localhost/live/*        -> nginx -> rtmp
+  ├─ http://localhost/hls/*         -> nginx -> hls_proxy
+  └─ http://localhost:3100/         -> frontend_stream
 ```
 
 ## Services
 
-| Service | Image | Port | Purpose |
-|---------|-------|------|---------|
-| `nginx` | nginx:alpine | 80, 443 | Reverse proxy + static frontend |
-| `backend` | custom Go | 8080 | REST API, WebSocket hub, JWT auth |
-| `postgres` | postgres:16 | 5432 | Match/team/stream/mirror data |
-| `redis` | redis:7 | 6379 | Rate limiting, chat pub/sub |
-| `rtmp` | alfg/nginx-rtmp | 1935, 8088 | RTMP ingest → HLS segments |
-| `streamer` | custom | 8090 (internal) | Headless Chromium → RTMP |
-| `hls_proxy` | pcruz1905/hls-restream | 8089 | Restream external HLS sources |
+| Service | Port | Purpose |
+|---|---:|---|
+| `nginx` | `80` | Main entrypoint for the public site and API proxy |
+| `frontend_main` | internal `3000` | Main Next.js site (`frontend/apps/main`) |
+| `frontend_stream` | `3100` | Stream Next.js surface (`frontend/apps/stream`) |
+| `backend` | `8080` | Go API, JWT auth, WebSocket hub, mirror health |
+| `postgres` | `5432` | Persistent relational data |
+| `redis` | `6379` | Rate limiting and pub/sub |
+| `rtmp` | `1935`, `8088` | RTMP ingest and HLS segment generation |
+| `hls_proxy` | `8089` | External HLS restream proxy |
 
 ## API
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/health` | Healthcheck |
-| GET | `/api/mirrors` | Active mirror domains |
-| GET | `/api/matches` | Matches (filter: date, status, stage) |
-| GET | `/api/matches/:id` | Match detail + streams |
-| GET | `/api/groups` | Group standings |
-| WS | `/api/ws/chat/:matchId` | Live chat |
-| WS | `/api/ws/live` | Score updates |
-| POST | `/api/admin/login` | JWT login |
-| CRUD | `/api/admin/matches` | Match management |
-| CRUD | `/api/admin/streams` | Stream URL management |
-| CRUD | `/api/admin/mirrors` | Mirror domain management |
-| POST | `/api/admin/stream/launch` | Start headless browser stream |
-| POST | `/api/admin/stream/stop` | Stop headless stream |
-| GET | `/api/admin/stream/status` | Active stream status |
-| POST | `/api/admin/stream/debug` | Open Chromium for Google login |
+| Method | Path |
+|---|---|
+| `GET` | `/api/health` |
+| `GET` | `/api/mirrors` |
+| `GET` | `/api/matches` |
+| `GET` | `/api/matches/:id` |
+| `GET` | `/api/matches/:id/stats` |
+| `GET` | `/api/groups` |
+| `GET` | `/api/groups/:id` |
+| `WS` | `/api/ws/chat/:matchId` |
+| `WS` | `/api/ws/live` |
+| `POST` | `/api/admin/login` |
+| `CRUD` | `/api/admin/matches` |
+| `CRUD` | `/api/admin/streams` |
+| `CRUD` | `/api/admin/mirrors` |
+| `POST` | `/internal/rtmp/authorize` |
+| `POST` | `/internal/rtmp/done` |
 
-## Quick Start
+## Local Docker Start
 
 ```bash
+cp docker/.env.example docker/.env
 cd docker
-docker compose up -d
-
-# Verify
-curl http://localhost/api/health
-# → {"status":"ok"}
+docker compose up --build -d
 ```
 
-Admin panel: `http://localhost:8080/admin`
-Default credentials: `admin / admin123`
+Then open:
 
-## Mirror System
+- Main site: `http://localhost/`
+- Admin login: `http://localhost/admin/login`
+- Stream surface: `http://localhost:3100/en/stream/1`
 
-Multiple domains on different TLDs and registrars. Backend goroutine health-checks every 15s. Frontend auto-switches on failure.
+If `3100` is already occupied, override both `STREAM_SURFACE_PORT` and `NEXT_PUBLIC_STREAM_SITE_URL` before running `docker compose up`.
 
-```
-primary.tv  ──┐
-backup.live ──┼──→ Cloudflare → origin VPS
-cold.stream ──┘
-```
+For local bootstrap, `.env.example` keeps `ENABLE_DEV_ADMIN_BOOTSTRAP=true`, which creates a development-only admin user with password `admin123`. Production must disable that path and provide a real `ADMIN_PASSWORD_HASH`.
 
-Telegram bot sends alerts on mirror switch. Admin panel at `/admin/mirrors`.
+## Production Requirements
+
+- Set `ENV=production`
+- Set a non-default `JWT_SECRET`
+- Set `ADMIN_PASSWORD_HASH`
+- Set `ENABLE_DEV_ADMIN_BOOTSTRAP=false`
+- Set `NEXT_PUBLIC_STREAM_SITE_URL` to the real stream surface URL before building `frontend_main`
+
+## Notes
+
+- `frontend/apps/main` links to the stream surface through `NEXT_PUBLIC_STREAM_SITE_URL` when configured, otherwise it falls back to the current mirror/base URL.
+- Mirror primary selection is enforced both in application logic and by a partial unique index in `backend/migrations/014_mirrors_primary_unique.sql`.
+- Admin API calls now clear invalid JWTs and bounce the user back to `/admin/login` on `401`.

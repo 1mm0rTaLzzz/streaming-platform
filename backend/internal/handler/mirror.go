@@ -50,8 +50,22 @@ func (h *MirrorHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	tx, err := h.db.Beginx()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer tx.Rollback()
+
+	if input.IsPrimary {
+		if err := demotePrimaries(tx, nil); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
 	var id int
-	err := h.db.QueryRow(
+	err = tx.QueryRow(
 		"INSERT INTO mirrors (domain, is_active, is_primary, region, priority) VALUES ($1, $2, $3, $4, $5) RETURNING id",
 		input.Domain, input.IsActive, input.IsPrimary, input.Region, input.Priority,
 	).Scan(&id)
@@ -59,6 +73,11 @@ func (h *MirrorHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{"id": id})
 }
 
@@ -73,12 +92,31 @@ func (h *MirrorHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	_, err = h.db.Exec("UPDATE mirrors SET domain=$1, is_active=$2, is_primary=$3, region=$4, priority=$5 WHERE id=$6",
+	tx, err := h.db.Beginx()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer tx.Rollback()
+
+	if input.IsPrimary {
+		if err := demotePrimaries(tx, &id); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	_, err = tx.Exec("UPDATE mirrors SET domain=$1, is_active=$2, is_primary=$3, region=$4, priority=$5 WHERE id=$6",
 		input.Domain, input.IsActive, input.IsPrimary, input.Region, input.Priority, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
 
@@ -137,4 +175,14 @@ func (h *MirrorHandler) Activate(c *gin.Context) {
 	))
 
 	c.JSON(http.StatusOK, gin.H{"ok": true, "domain": domain})
+}
+
+func demotePrimaries(tx *sqlx.Tx, excludeID *int) error {
+	if excludeID == nil {
+		_, err := tx.Exec("UPDATE mirrors SET is_primary = false WHERE is_primary = true")
+		return err
+	}
+
+	_, err := tx.Exec("UPDATE mirrors SET is_primary = false WHERE is_primary = true AND id <> $1", *excludeID)
+	return err
 }
