@@ -180,7 +180,7 @@ export default function MatchStreamView({ match, locale, lang, region }: Props) 
             </span>
           </div>
 
-          {hasStreams ? (
+          {isLive && hasStreams ? (
             <VideoPlayer streams={activeStreams} preferredLang={lang} preferredRegion={region} />
           ) : (
             <div

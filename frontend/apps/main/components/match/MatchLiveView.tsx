@@ -8,7 +8,6 @@ import LiveCountdown from '@/components/match/LiveCountdown';
 import FlagDisplay from '@/components/match/FlagDisplay';
 import MatchStatsView from '@/components/match/MatchStatsView';
 import { useTranslations } from 'next-intl';
-import { resolveStreamSiteURL } from '@/lib/stream-site';
 
 interface Props {
   match: Match;
@@ -53,33 +52,16 @@ export default function MatchLiveView({ match, locale, lang, region }: Props) {
     return () => ws.close();
   }, [match.id]);
 
-  const configuredStreamBase = process.env.NEXT_PUBLIC_STREAM_SITE_URL ?? '';
-  const [streamBase, setStreamBase] = useState(() =>
-    resolveStreamSiteURL({
-      configuredBaseURL: configuredStreamBase,
-      currentOrigin: typeof window !== 'undefined' ? window.location.origin : '',
-    }),
-  );
+  const defaultStreamBase = process.env.NEXT_PUBLIC_STREAM_SITE_URL ?? 'http://localhost:3100';
+  const [streamBase, setStreamBase] = useState(defaultStreamBase);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
     api.mirrors.list().then(({ mirrors }) => {
       const primary = mirrors.find((m) => m.is_primary && m.health_status === 'healthy' && m.is_active)
         ?? mirrors.find((m) => m.is_active && m.health_status === 'healthy');
-
-      setStreamBase(resolveStreamSiteURL({
-        configuredBaseURL: configuredStreamBase,
-        currentOrigin: window.location.origin,
-        primaryMirrorDomain: primary?.domain,
-      }));
-    }).catch(() => {
-      setStreamBase(resolveStreamSiteURL({
-        configuredBaseURL: configuredStreamBase,
-        currentOrigin: window.location.origin,
-      }));
-    });
-  }, [configuredStreamBase]);
+      if (primary) setStreamBase(`https://${primary.domain}`);
+    }).catch(() => {});
+  }, []);
 
   const nameKey  = locale === 'ru' ? 'name_ru' : 'name_en';
   const homeName = match.home_team?.[nameKey] ?? tMatch('tbd');
@@ -91,9 +73,6 @@ export default function MatchLiveView({ match, locale, lang, region }: Props) {
   if (lang) streamQuery.set('lang', lang);
   if (region) streamQuery.set('region', region);
   const streamHref = `${streamBase}/${locale}/stream/${match.id}${streamQuery.toString() ? `?${streamQuery}` : ''}`;
-  const streamLabel = locale === 'ru'
-    ? isLive ? 'Подробнее' : 'Страница матча'
-    : isLive ? 'Coverage' : 'Match hub';
 
   return (
     <div className="space-y-6">
@@ -127,8 +106,12 @@ export default function MatchLiveView({ match, locale, lang, region }: Props) {
               <FlagDisplay src={homeFlag} name={homeName} size="xl" />
             </div>
             <div
-              className="text-base md:text-2xl font-bold leading-tight"
-              style={{ color: 'var(--text-hi)' }}
+              className="font-bold leading-tight"
+              style={{
+                color: 'var(--text-hi)',
+                fontSize: 'clamp(0.8rem, 3.5vw, 1.5rem)',
+                wordBreak: 'break-word',
+              }}
             >
               {homeName}
             </div>
@@ -203,8 +186,12 @@ export default function MatchLiveView({ match, locale, lang, region }: Props) {
               <FlagDisplay src={awayFlag} name={awayName} size="xl" />
             </div>
             <div
-              className="text-base md:text-2xl font-bold leading-tight"
-              style={{ color: 'var(--text-hi)' }}
+              className="font-bold leading-tight"
+              style={{
+                color: 'var(--text-hi)',
+                fontSize: 'clamp(0.8rem, 3.5vw, 1.5rem)',
+                wordBreak: 'break-word',
+              }}
             >
               {awayName}
             </div>
@@ -221,26 +208,22 @@ export default function MatchLiveView({ match, locale, lang, region }: Props) {
         )}
       </div>
 
-      {/* Stream site button — external link to stream app */}
-      {(isLive || status === 'scheduled') && (
+
+      {isLive && (
         <a
           href={streamHref}
           className="flex w-full items-center justify-center gap-3 rounded-[20px] py-4 text-sm font-black uppercase tracking-wide transition-all hover:opacity-90 active:scale-[0.99]"
           style={{
-            background: isLive
-              ? 'linear-gradient(135deg, var(--live) 0%, rgba(220,38,38,0.8) 100%)'
-              : 'linear-gradient(135deg, var(--primary) 0%, rgba(200,160,0,0.9) 100%)',
+            background: 'linear-gradient(135deg, var(--live) 0%, rgba(220,38,38,0.8) 100%)',
             color: '#000',
-            boxShadow: isLive ? '0 8px 32px rgba(239,68,68,0.3)' : '0 8px 32px rgba(246,196,0,0.25)',
+            boxShadow: '0 8px 32px rgba(239,68,68,0.3)',
           }}
         >
-          {isLive && (
-            <span className="flex h-2 w-2 items-center justify-center">
-              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-white opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
-            </span>
-          )}
-          {streamLabel}
+          <span className="flex h-2 w-2 items-center justify-center">
+            <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-white opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+          </span>
+          {locale === 'ru' ? 'Подробнее' : 'Coverage'}
         </a>
       )}
 

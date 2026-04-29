@@ -49,6 +49,7 @@
   },
   "match": {
     "live": "AO VIVO",
+    "inPlay": "Jogo em andamento",
     "finished": "FIM",
     "fullTime": "Fim de jogo",
     "halfTime": "INT",

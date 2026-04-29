@@ -49,6 +49,7 @@
   },
   "match": {
     "live": "直播",
+    "inPlay": "比赛进行中",
     "finished": "完场",
     "fullTime": "全场结束",
     "halfTime": "中场",

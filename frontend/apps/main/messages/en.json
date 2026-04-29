@@ -49,6 +49,7 @@
   },
   "match": {
     "live": "LIVE",
+    "inPlay": "Game in progress",
     "finished": "FT",
     "fullTime": "Full Time",
     "halfTime": "HT",

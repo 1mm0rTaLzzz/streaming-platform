@@ -49,6 +49,7 @@
   },
   "match": {
     "live": "LIVE",
+    "inPlay": "경기 진행 중",
     "finished": "종료",
     "fullTime": "경기 종료",
     "halfTime": "HT",

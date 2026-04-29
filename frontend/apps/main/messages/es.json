@@ -49,6 +49,7 @@
   },
   "match": {
     "live": "EN CURSO",
+    "inPlay": "Partido en juego",
     "finished": "FIN",
     "fullTime": "Final del partido",
     "halfTime": "DESC",

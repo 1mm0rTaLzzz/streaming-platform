@@ -97,7 +97,6 @@ services:
         NEXT_PUBLIC_STREAM_SITE_URL: ${NEXT_PUBLIC_STREAM_SITE_URL:-http://localhost:3100}
     restart: unless-stopped
     environment:
-      HOSTNAME: "0.0.0.0"
       PORT: "3000"
       BACKEND_URL: http://backend:8080
       NEXT_PUBLIC_STREAM_SITE_URL: ${NEXT_PUBLIC_STREAM_SITE_URL:-http://localhost:3100}
@@ -128,7 +127,6 @@ services:
         HLS_PROXY_URL: http://hls_proxy:8089
     restart: unless-stopped
     environment:
-      HOSTNAME: "0.0.0.0"
       PORT: "3100"
       BACKEND_URL: http://backend:8080
       HLS_PROXY_URL: http://hls_proxy:8089
@@ -138,7 +136,7 @@ services:
       hls_proxy:
         condition: service_healthy
     ports:
-      - "${STREAM_SURFACE_PORT:-3100}:3100"
+      - "3100:3100"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3100/en/stream/1"]
       interval: 10s
@@ -195,7 +193,6 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/cloudflare-ips.conf:/etc/nginx/cloudflare-ips.conf:ro
-      - nginx_cache:/var/cache/nginx
       - ./hls/fixtures:/etc/nginx/hls-fixtures:ro
     ports:
       - "80:80"
@@ -219,4 +216,3 @@ volumes:
   pg_data:
   redis_data:
   hls_data:
-  nginx_cache:

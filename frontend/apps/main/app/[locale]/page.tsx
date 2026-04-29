@@ -88,6 +88,8 @@ function HomeMatchRow({
     versus: string;
     liveCta: string;
     detailsCta: string;
+    inPlay: string;
+    halfTime: string;
     tbd: string;
     stages: Record<string, string>;
   };
@@ -117,26 +119,57 @@ function HomeMatchRow({
         </div>
       </div>
 
-      <div className="flex min-w-0 items-center gap-3">
-        <FlagDisplay src={homeFlag} name={homeName} size="sm" className="shrink-0" />
-        <span className="truncate text-sm font-black uppercase" style={{ color: 'var(--text-hi)' }}>
+      {/* Flags are pinned to the inner edges so each side forms a vertical column. */}
+      <div className="flex min-w-0 items-center justify-end gap-2.5">
+        <span
+          className="min-w-0 text-right font-black uppercase leading-tight"
+          style={{
+            color: 'var(--text-hi)',
+            fontSize: 'clamp(0.65rem, 1.5cqi, 0.875rem)',
+            wordBreak: 'break-word',
+            overflowWrap: 'break-word',
+          }}
+        >
           {homeName}
         </span>
+        <FlagDisplay src={homeFlag} name={homeName} size="sm" className="shrink-0 self-center" />
       </div>
 
       <div className="font-display text-xl font-black uppercase md:text-center" style={{ color: 'var(--primary)' }}>
         {labels.versus}
       </div>
 
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="truncate text-sm font-black uppercase md:order-first" style={{ color: 'var(--text-hi)' }}>
+      <div className="flex min-w-0 items-center justify-start gap-2.5">
+        <FlagDisplay src={awayFlag} name={awayName} size="sm" className="shrink-0 self-center" />
+        <span
+          className="min-w-0 text-left font-black uppercase leading-tight"
+          style={{
+            color: 'var(--text-hi)',
+            fontSize: 'clamp(0.65rem, 1.5cqi, 0.875rem)',
+            wordBreak: 'break-word',
+            overflowWrap: 'break-word',
+          }}
+        >
           {awayName}
         </span>
-        <FlagDisplay src={awayFlag} name={awayName} size="sm" className="shrink-0" />
       </div>
 
       <div className="text-xs font-semibold uppercase" style={{ color: 'var(--text-mid)' }}>
-        {labels.stages[match.stage] ?? match.stage.replace(/_/g, ' ').toUpperCase()}
+        {isLive ? (
+          <span
+            className="inline-flex min-h-9 items-center gap-2 rounded-md border px-3 font-black"
+            style={{
+              borderColor: 'rgba(255,95,87,0.36)',
+              background: 'rgba(255,95,87,0.10)',
+              color: 'var(--live)',
+            }}
+          >
+            <span className="live-dot inline-block h-2 w-2 rounded-full" style={{ background: 'var(--live)' }} />
+            {match.status === 'half_time' ? labels.halfTime : labels.inPlay}
+          </span>
+        ) : (
+          labels.stages[match.stage] ?? match.stage.replace(/_/g, ' ').toUpperCase()
+        )}
       </div>
 
       <div
@@ -173,8 +206,10 @@ export default async function HomePage({ params }: { params: { locale: string } 
   const scheduledMatches = scheduledMatchResult ?? [];
   const liveNow = [...liveMatches, ...halfTimeMatches];
   const todayUpcoming = todayMatches.filter((m) => m.status === 'scheduled');
-  const upcoming = (todayUpcoming.length > 0 ? todayUpcoming : scheduledMatches).slice(0, 4);
-  const featuredMatches = liveNow.length > 0 ? liveNow.slice(0, 4) : upcoming;
+  const upcomingPool = todayUpcoming.length > 0 ? todayUpcoming : scheduledMatches;
+  const liveIds = new Set(liveNow.map((m) => m.id));
+  const upcoming = upcomingPool.filter((m) => !liveIds.has(m.id)).slice(0, 4);
+  const featuredMatches = [...liveNow, ...upcoming].slice(0, 6);
   const emptyMatchesMessage = matchApiUnavailable
     ? tHome('noMatchesApi')
     : tHome('noMatchesToday');
@@ -297,6 +332,8 @@ export default async function HomePage({ params }: { params: { locale: string } 
                       versus: tMatch('versus'),
                       liveCta: tHome('matchCenter'),
                       detailsCta: tHome('matchDetails'),
+                      inPlay: tMatch('inPlay'),
+                      halfTime: tMatch('halfTime'),
                       tbd: tMatch('tbd'),
                       stages: stageLabels,
                     }}

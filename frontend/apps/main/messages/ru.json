@@ -49,6 +49,7 @@
   },
   "match": {
     "live": "LIVE",
+    "inPlay": "Идёт игра",
     "finished": "З",
     "fullTime": "Матч окончен",
     "halfTime": "ПТ",

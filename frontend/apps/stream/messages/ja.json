@@ -49,6 +49,7 @@
   },
   "match": {
     "live": "LIVE",
+    "inPlay": "試合中",
     "finished": "終了",
     "fullTime": "試合終了",
     "halfTime": "HT",

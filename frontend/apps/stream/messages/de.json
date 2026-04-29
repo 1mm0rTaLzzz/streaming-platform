@@ -49,6 +49,7 @@
   },
   "match": {
     "live": "LIVE",
+    "inPlay": "Spiel läuft",
     "finished": "ENDE",
     "fullTime": "Abpfiff",
     "halfTime": "HZ",

@@ -49,6 +49,7 @@
   },
   "match": {
     "live": "EN DIRECT",
+    "inPlay": "Match en cours",
     "finished": "FIN",
     "fullTime": "Fin du match",
     "halfTime": "MT",
